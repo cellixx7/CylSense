@@ -4,7 +4,7 @@ import { z } from "zod";
  * Versao dos contratos compartilhados. Mudanca incompativel => incrementar MAJOR
  * e manter o schema anterior enquanto houver consumidores (desktop instalado).
  */
-export const CONTRACTS_VERSION = "1.0.0";
+export const CONTRACTS_VERSION = "1.1.0";
 
 /** Versao de schema gravada nos agregados persistidos ou trafegados. */
 export const SCHEMA_VERSION = 1 as const;
