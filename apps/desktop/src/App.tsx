@@ -1,3 +1,4 @@
+import { CONTRACTS_VERSION } from "@cyl/contracts";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { DEFAULT_ROUTE, NAV_ITEMS, type RouteId } from "@/navigation";
@@ -37,7 +38,7 @@ export default function App() {
             );
           })}
         </nav>
-        <p className="px-5 py-4 text-xs text-muted-foreground">v0.1.0 · offline</p>
+        <p className="px-5 py-4 text-xs text-muted-foreground">v0.1.0 · contratos {CONTRACTS_VERSION} · offline</p>
       </aside>
       <main className="flex-1 overflow-auto">{current && <Placeholder item={current} />}</main>
     </div>

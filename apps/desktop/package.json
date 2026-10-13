@@ -12,6 +12,9 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@cyl/contracts": "workspace:*",
+    "@cyl/core": "workspace:*",
+    "@cyl/game-adapter-valorant": "workspace:*",
     "@radix-ui/react-slot": "^1.2.0",
     "@tauri-apps/api": "^2.0.0",
     "class-variance-authority": "^0.7.1",

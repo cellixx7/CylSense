@@ -10,6 +10,15 @@ importers:
 
   apps/desktop:
     dependencies:
+      '@cyl/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@cyl/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@cyl/game-adapter-valorant':
+        specifier: workspace:*
+        version: link:../../packages/game-adapters/valorant
       '@radix-ui/react-slot':
         specifier: ^1.2.0
         version: 1.5.0(@types/react@19.3.0)(react@19.3.0)
