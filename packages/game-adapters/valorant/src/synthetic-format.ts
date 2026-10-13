@@ -7,6 +7,10 @@ import { z } from "zod";
  * adaptador do payload oficial sera escrito a partir da documentacao da Riot
  * quando houver acesso autorizado. Partidas neste formato saem sempre com
  * origin = "synthetic".
+ *
+ * Campos opcionais (headshotKills, damage, attackers, winCondition, score,
+ * eventCoverage, headshot, assists) foram adicionados mantendo formatVersion 1:
+ * arquivos antigos continuam validos e o dado ausente segue ausente.
  */
 export const SYNTHETIC_FORMAT = "cyl-synthetic-valorant";
 
@@ -17,6 +21,8 @@ const SyntheticEvent = z.object({
   type: z.enum(["kill", "plant", "defuse"]),
   actor: z.string().min(1).optional(),
   victim: z.string().min(1).optional(),
+  headshot: z.boolean().optional(),
+  assists: z.array(z.string().min(1)).optional(),
 });
 
 export const SyntheticValorantMatch = z.object({
@@ -28,6 +34,8 @@ export const SyntheticValorantMatch = z.object({
   queue: z.string().min(1),
   startedAt: z.iso.datetime({ offset: true }),
   durationSeconds: z.int().positive(),
+  eventCoverage: z.enum(["complete", "partial"]).optional(),
+  score: z.object({ Red: z.int().nonnegative(), Blue: z.int().nonnegative() }).optional(),
   players: z
     .array(
       z.object({
@@ -38,6 +46,9 @@ export const SyntheticValorantMatch = z.object({
         kills: z.int().nonnegative(),
         deaths: z.int().nonnegative(),
         assists: z.int().nonnegative(),
+        headshotKills: z.int().nonnegative().optional(),
+        /** Dano total causado, em pontos de vida. */
+        damage: z.int().nonnegative().optional(),
       }),
     )
     .min(1),
@@ -45,6 +56,8 @@ export const SyntheticValorantMatch = z.object({
     z.object({
       number: z.int().positive(),
       winner: SyntheticTeam,
+      attackers: SyntheticTeam.optional(),
+      winCondition: z.enum(["elimination", "detonate", "defuse", "time"]).optional(),
       events: z.array(SyntheticEvent),
     }),
   ),

@@ -1,21 +1,28 @@
-import { Match, SCHEMA_VERSION, type MatchEvent } from "@cyl/contracts";
-import { err, ok, providerError, type GameAdapter, type MatchNormalizer } from "@cyl/core";
+import { Match, SCHEMA_VERSION, type MatchEvent, type MatchResult } from "@cyl/contracts";
+import { parseWith, type GameAdapter, type MatchNormalizer } from "@cyl/core";
 import { SyntheticValorantMatch } from "./synthetic-format";
 
 const TEAM = { Red: "red", Blue: "blue" } as const;
 const EVENT_TYPE = { kill: "kill", plant: "spike_plant", defuse: "spike_defuse" } as const;
+const WIN_CONDITION = {
+  elimination: "elimination",
+  detonate: "spike_detonated",
+  defuse: "spike_defused",
+  time: "time_expired",
+} as const;
 
-function describeIssues(error: { issues: { path: PropertyKey[]; message: string }[] }): string {
-  return error.issues
-    .slice(0, 3)
-    .map((i) => `${i.path.map(String).join(".") || "(raiz)"}: ${i.message}`)
-    .join("; ");
+/** Inclui a chave somente quando o valor existe: ausente continua ausente. */
+const opt = <K extends string, V>(key: K, value: V | undefined): Partial<Record<K, V>> =>
+  value === undefined ? {} : ({ [key]: value } as Record<K, V>);
+
+function toResult(score: { Red: number; Blue: number }): MatchResult {
+  const winner = score.Red === score.Blue ? "draw" : score.Red > score.Blue ? "red" : "blue";
+  return { score: { red: score.Red, blue: score.Blue }, winner };
 }
 
 export const syntheticNormalizer: MatchNormalizer<SyntheticValorantMatch> = {
   parse(input) {
-    const r = SyntheticValorantMatch.safeParse(input);
-    return r.success ? ok(r.data) : err(providerError("invalid_data", `partida invalida: ${describeIssues(r.error)}`));
+    return parseWith(SyntheticValorantMatch, input, "partida invalida");
   },
 
   normalize(raw, ctx) {
@@ -26,8 +33,10 @@ export const syntheticNormalizer: MatchNormalizer<SyntheticValorantMatch> = {
         roundNumber: round.number,
         type: EVENT_TYPE[e.type],
         timeMs: e.t,
-        ...(e.actor === undefined ? {} : { actorRef: e.actor }),
-        ...(e.victim === undefined ? {} : { targetRef: e.victim }),
+        ...opt("actorRef", e.actor),
+        ...opt("targetRef", e.victim),
+        ...opt("headshot", e.headshot),
+        ...opt("assistRefs", e.assists),
       })),
     );
 
@@ -49,13 +58,21 @@ export const syntheticNormalizer: MatchNormalizer<SyntheticValorantMatch> = {
         kills: p.kills,
         deaths: p.deaths,
         assists: p.assists,
+        ...opt("headshotKills", p.headshotKills),
+        ...opt("damageDealt", p.damage),
       })),
-      rounds: raw.rounds.map((r) => ({ number: r.number, winningTeam: TEAM[r.winner] })),
+      rounds: raw.rounds.map((r) => ({
+        number: r.number,
+        winningTeam: TEAM[r.winner],
+        ...opt("attackingTeam", r.attackers && TEAM[r.attackers]),
+        ...opt("winCondition", r.winCondition && WIN_CONDITION[r.winCondition]),
+      })),
       events,
+      ...opt("eventCoverage", raw.eventCoverage),
+      ...opt("result", raw.score && toResult(raw.score)),
     };
 
-    const r = Match.safeParse(candidate);
-    return r.success ? ok(r.data) : err(providerError("invalid_data", `partida inconsistente: ${describeIssues(r.error)}`));
+    return parseWith(Match, candidate, "partida inconsistente");
   },
 };
 

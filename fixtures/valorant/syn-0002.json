@@ -7,6 +7,8 @@
   "queue": "unrated",
   "startedAt": "2026-10-02T19:30:00.000Z",
   "durationSeconds": 260,
+  "eventCoverage": "partial",
+  "score": { "Red": 1, "Blue": 1 },
   "players": [
     { "ref": "p1", "name": "Synth Alpha", "team": "Blue", "agent": "Jett", "kills": 2, "deaths": 2, "assists": 0 },
     { "ref": "p2", "name": "Synth Kilo", "team": "Blue", "agent": "Viper", "kills": 1, "deaths": 1, "assists": 1 },
@@ -23,6 +25,8 @@
     {
       "number": 1,
       "winner": "Red",
+      "attackers": "Red",
+      "winCondition": "detonate",
       "events": [
         { "t": 25000, "type": "kill", "actor": "p8", "victim": "p1" },
         { "t": 33000, "type": "kill", "actor": "p1", "victim": "p6" },
@@ -33,6 +37,8 @@
     {
       "number": 2,
       "winner": "Blue",
+      "attackers": "Red",
+      "winCondition": "defuse",
       "events": [
         { "t": 141000, "type": "kill", "actor": "p1", "victim": "p9" },
         { "t": 150000, "type": "kill", "actor": "p8", "victim": "p5" },
