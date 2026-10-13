@@ -117,6 +117,7 @@ Checagem do lado Rust: `cd apps/desktop/src-tauri && cargo check`. O instalador 
 
 - P0-01 (bootstrap do desktop): concluido, verificado no Linux e no Windows ([aceite](docs/architecture/p0-01-aceite.md)).
 - v0.2 (fundacao Web/Desktop/API): concluida ([estado e migracao](docs/architecture/v0.2-estado-e-migracao.md)).
-- Proximo: P0-02 (integrar o desktop aos contratos). Backlog completo em [docs/roadmap.md](docs/roadmap.md).
+- P0-02 (contratos e dominio): concluido ([aceite](docs/architecture/p0-02-aceite.md)).
+- Proximo: P0-03 (SQLite e migracoes). Backlog completo em [docs/roadmap.md](docs/roadmap.md).
 
 CYL Sense nao e afiliado a Riot Games.

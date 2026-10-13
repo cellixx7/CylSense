@@ -9,7 +9,7 @@ Legenda: [x] concluido, [~] parcial, [ ] pendente.
 
 ## P0 - Desktop local-first (sem Riot, sem IA paga)
 
-- [~] P0-02 Contratos e dominio: contratos, portas e adaptador sintetico entregues na v0.2. Falta integra-los ao desktop.
+- [x] P0-02 Contratos e dominio: contratos 1.1.0 (lados, placar, headshots, dano, cobertura de eventos, marcacoes de video, envelope local), adaptador sintetico evoluido e desktop ligado aos pacotes; ver docs/architecture/p0-02-aceite.md e ADR 0003
 - [ ] P0-03 SQLite (migracoes nao destrutivas, armazenando os contratos)
 - [ ] P0-04 Importacao (fixtures sinteticas e arquivos do usuario via `@cyl/game-adapter-valorant`)
 - [ ] P0-05 Analytics Engine (`MatchMetrics` deterministicas; pacote `@cyl/analytics`)

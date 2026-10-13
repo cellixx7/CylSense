@@ -72,7 +72,7 @@ Detalhes em [docs/roadmap.md](docs/roadmap.md).
 
 - [x] P0-01 Bootstrap do desktop: verificado no Linux (typecheck, testes, build web, cargo check/clippy, binario nativo) e no Windows (`pnpm dev` abre a janela, `pnpm build` gera instalador NSIS); ver docs/architecture/p0-01-aceite.md
 - [x] v0.2 Fundacao Web/Desktop/API (ver docs/architecture/v0.2-estado-e-migracao.md)
-- [~] P0-02 Contratos e dominio: contratos, portas e adaptador sintetico prontos; falta integrar ao desktop (prompt em docs/prompts/p0-02-contratos-dominio.md)
+- [x] P0-02 Contratos e dominio: contratos 1.1.0, adaptador sintetico com testes negativos e desktop consumindo os pacotes; ver docs/architecture/p0-02-aceite.md e ADR 0003
 - [ ] P0-03 SQLite
 - [ ] P0-04 Importacao
 - [ ] P0-05 Analytics Engine

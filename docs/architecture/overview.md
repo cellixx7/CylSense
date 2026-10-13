@@ -34,9 +34,9 @@ flowchart LR
 | Pacote | Responsabilidade | Consumidores |
 |---|---|---|
 | `@cyl/config` | `tsconfig.base.json` strict | pacotes e API |
-| `@cyl/contracts` | Schemas Zod versionados (`CONTRACTS_VERSION`, `schemaVersion`) do dominio e da API HTTP | web, API, adaptadores (desktop a partir do P0-03/04) |
-| `@cyl/core` | `Result`, `ProviderError` e as portas `AuthProvider`, `RiotAuthProvider`, `MatchProvider`, `RiotMatchProvider`, `GameAdapter`, `MatchNormalizer` | API, adaptadores |
-| `@cyl/game-adapter-valorant` | Valida e normaliza partidas para `Match`. Hoje so o formato **sintetico** `cyl-synthetic-valorant` | API (mock), desktop (P0-04) |
+| `@cyl/contracts` | Schemas Zod versionados (`CONTRACTS_VERSION`, `schemaVersion`) do dominio e da API HTTP | web, API, adaptadores, desktop (P0-02) |
+| `@cyl/core` | `Result`, `ProviderError`, `parseWith` e as portas `AuthProvider`, `RiotAuthProvider`, `MatchProvider`, `RiotMatchProvider`, `GameAdapter`, `MatchNormalizer` | API, adaptadores, desktop |
+| `@cyl/game-adapter-valorant` | Valida e normaliza partidas para `Match`. Hoje so o formato **sintetico** `cyl-synthetic-valorant` | API (mock), desktop (P0-02: fixtures; P0-04: importacao) |
 
 Pacotes internos sao consumidos como TypeScript-fonte (`exports` -> `src/index.ts`), sem etapa de build: Vite, Next (`transpilePackages`), tsx e Vitest os compilam. Nao foram criados `ui`, `analytics` nem `coaching` porque ainda nao tem conteudo; entram em P0-05, P0-08 e quando o design system existir.
 
@@ -47,11 +47,13 @@ Regra de dependencia: `contracts` <- `core` <- `game-adapters/*` <- apps/servico
 | Camada | Onde vive | Contrato |
 |---|---|---|
 | Dado externo bruto | So dentro do `MatchProvider` / `MatchNormalizer.parse` | `unknown` ate validar |
-| Normalizado | `Match`, `MatchParticipant`, `Round`, `MatchEvent` | `@cyl/contracts` |
+| Normalizado | `Match`, `MatchParticipant`, `Round`, `MatchEvent` (lados, condicao de vitoria, placar, `eventCoverage`; ausente != zero, ver `matchDataAvailability` e [ADR 0003](../decisions/0003-consistencia-e-cobertura-do-dominio.md)) | `@cyl/contracts` |
 | Metricas calculadas | `MatchMetrics` (com `engineVersion` e `sampleSize`) | `@cyl/contracts` |
-| Evidencias | `Evidence` (metrica, evento ou trecho de video) | `@cyl/contracts` |
-| Diagnosticos | `Finding` = `fact` ou `hypothesis` (hipotese exige `confidence` e `limitations`); sempre com evidencia | `@cyl/contracts` |
+| Evidencias | `Evidence` (metrica, evento, round ou trecho de video); `checkFindingInContext` valida contra a sessao | `@cyl/contracts` |
+| Diagnosticos | `Finding` = `fact` ou `hypothesis` (hipotese exige `confidence` < 1 e `limitations`); `sampleSize` opcional; sempre com evidencia | `@cyl/contracts` |
 | Recomendacoes | `CoachingRecommendation` (exige `findingIds`) | `@cyl/contracts` |
+| Video | `VideoReference` (offset) e `VideoMarker` (marcacao manual) | `@cyl/contracts` |
+| Arquivo local | `LocalImportEnvelope` (`schemaVersion`, base das migracoes do P0-03) | `@cyl/contracts` |
 
 Toda partida carrega `origin` (`synthetic`, `riot_api`, `user_import`). A UI e obrigada a sinalizar `synthetic`; a API expoe `containsSyntheticData` nas listagens.
 
