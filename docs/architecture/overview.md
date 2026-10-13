@@ -1,44 +1,86 @@
-# Arquitetura v0.1 - CYL Sense Desktop
+# Arquitetura v0.2 - CYL Sense (Web, Desktop, API)
 
-## Principio
+> A v0.1 (somente desktop) esta resumida no fim deste documento. Decisao: [ADR 0002](../decisions/0002-separacao-web-desktop-api.md).
 
-Monolito modular, local-first. Cada responsabilidade vive em um modulo isolado, sem infraestrutura distribuida.
+## Visao geral
 
+```mermaid
+flowchart LR
+  subgraph Cliente
+    W[CYL Sense Web<br/>Next.js - apps/web]
+    D[CYL Sense Desktop<br/>Tauri 2 + React - apps/desktop]
+  end
+  subgraph Servidor
+    A[CYL Sense API<br/>Fastify - services/api]
+    DB[(PostgreSQL<br/>futuro)]
+  end
+  R[Riot Sign On + Riot API<br/>somente apos aprovacao]
+
+  W -- "/api/* (mesma origem, cookie httpOnly)" --> A
+  D -. "sincronizacao (futuro)" .-> A
+  A -. "desativado sem credenciais" .-> R
+  A -.-> DB
+  D --> L[(SQLite local<br/>P0-03)]
 ```
-CYL Sense Desktop (Tauri 2)
- └─ Application / Use Cases
-     ├─ Data Import        (adaptador VALORANT -> dominio canonico)
-     ├─ Analytics Engine   (metricas deterministicas, padroes)
-     ├─ Video Review       (MP4 manual, marcacoes, offset)
-     └─ Coaching Engine    (regras locais; AIProvider inativo)
- └─ Persistencia: SQLite local
- └─ AI Gateway (futuro, opt-in, isolado)
-```
 
-## Camadas e escopo
-
-| Camada | Tecnologia | Escopo |
+| Produto | Papel | Estado na v0.2 |
 |---|---|---|
-| Desktop | Tauri 2 + React + TypeScript | P0 |
-| UI | Tailwind CSS + shadcn/ui | P0 |
-| Nativo | Rust / comandos Tauri | P0 |
-| Persistencia | SQLite local + migracoes | P0-03 |
-| Contratos | TypeScript + Zod | P0-02 |
-| Testes | Vitest (Playwright quando necessario) | P0 |
-| IA externa | Gateway seguro, sem segredo no bundle | Futuro |
+| Web (`apps/web`) | Site institucional, login Riot, historico e analises iniciais, convite ao desktop | Estrutura minima executavel: landing, `/entrar`, `/partidas` (demo), `/download` |
+| Desktop (`apps/desktop`) | Ferramenta principal: analise aprofundada, video manual, CYL Coach, funciona offline | Inalterado (shell do P0-01) |
+| API (`services/api`) | Autenticacao, integracao Riot, sincronizacao idempotente, servicos compartilhados | Estrutura minima executavel; Riot **desativada**, modo `mock` so em desenvolvimento |
 
-## Motor inteligente em tres etapas
+## Pacotes compartilhados
 
-1. **Deterministico**: metricas reproduziveis com limites amostrais.
-2. **Visual**: partidas associadas a videos do usuario, marcacao manual no MVP.
-3. **Interpretacao**: IA opcional recebe apenas evidencias selecionadas e declara limitacoes.
+| Pacote | Responsabilidade | Consumidores |
+|---|---|---|
+| `@cyl/config` | `tsconfig.base.json` strict | pacotes e API |
+| `@cyl/contracts` | Schemas Zod versionados (`CONTRACTS_VERSION`, `schemaVersion`) do dominio e da API HTTP | web, API, adaptadores (desktop a partir do P0-03/04) |
+| `@cyl/core` | `Result`, `ProviderError` e as portas `AuthProvider`, `RiotAuthProvider`, `MatchProvider`, `RiotMatchProvider`, `GameAdapter`, `MatchNormalizer` | API, adaptadores |
+| `@cyl/game-adapter-valorant` | Valida e normaliza partidas para `Match`. Hoje so o formato **sintetico** `cyl-synthetic-valorant` | API (mock), desktop (P0-04) |
 
-## Principio epistemologico
+Pacotes internos sao consumidos como TypeScript-fonte (`exports` -> `src/index.ts`), sem etapa de build: Vite, Next (`transpilePackages`), tsx e Vitest os compilam. Nao foram criados `ui`, `analytics` nem `coaching` porque ainda nao tem conteudo; entram em P0-05, P0-08 e quando o design system existir.
 
-Separar **evidencia observada**, **hipotese** e **recomendacao**. Estatistica sozinha raramente prova a causa de uma morte.
+Regra de dependencia: `contracts` <- `core` <- `game-adapters/*` <- apps/servicos. Pacotes nunca importam apps; `contracts` e `core` nao dependem de Node, DOM ou Tauri.
 
-## Modulos previstos (a partir do P0-02)
+## Camadas de dados
 
-`packages/core`, `packages/game-adapters/valorant`, `packages/analytics`, `packages/coaching`, `packages/ui`.
+| Camada | Onde vive | Contrato |
+|---|---|---|
+| Dado externo bruto | So dentro do `MatchProvider` / `MatchNormalizer.parse` | `unknown` ate validar |
+| Normalizado | `Match`, `MatchParticipant`, `Round`, `MatchEvent` | `@cyl/contracts` |
+| Metricas calculadas | `MatchMetrics` (com `engineVersion` e `sampleSize`) | `@cyl/contracts` |
+| Evidencias | `Evidence` (metrica, evento ou trecho de video) | `@cyl/contracts` |
+| Diagnosticos | `Finding` = `fact` ou `hypothesis` (hipotese exige `confidence` e `limitations`); sempre com evidencia | `@cyl/contracts` |
+| Recomendacoes | `CoachingRecommendation` (exige `findingIds`) | `@cyl/contracts` |
 
-No P0-01 existe apenas `apps/desktop`; os pacotes sao criados quando cada tarefa os exigir.
+Toda partida carrega `origin` (`synthetic`, `riot_api`, `user_import`). A UI e obrigada a sinalizar `synthetic`; a API expoe `containsSyntheticData` nas listagens.
+
+## Integracao Riot (isolada)
+
+Fluxo alvo: Usuario -> Web -> API -> Riot Sign On -> consentimento -> Riot API -> normalizacao -> persistencia -> Web/Desktop.
+
+- Implementacoes reais ficam **somente** em `services/api/src/providers/riot.ts`. Hoje respondem `not_configured` e nao fazem nenhuma chamada de rede.
+- `CYL_AUTH_MODE=disabled` e o padrao; `mock` usa provedores simulados e fixtures sinteticas e e **recusado** com `NODE_ENV=production`.
+- O orquestrador OAuth ja esta pronto e testado com o provedor mock: `state` aleatorio de uso unico com TTL de 10 minutos, vinculado a cookie httpOnly; PKCE S256; troca de codigo no servidor; sessao em cookie httpOnly `SameSite=Lax` (`Secure` em producao).
+- Endpoints, escopos e o formato do payload oficial **nao** foram definidos: a Riot so libera RSO para chaves de producao e inicia a integracao apos a aprovacao (ver [compliance](../compliance/riot.md)).
+
+Detalhes das rotas, da seguranca e das variaveis de ambiente: [api.md](api.md).
+
+## CYL Coach (hibrido)
+
+- **Motor local** (desktop, P0-05/P0-08): metricas deterministicas, regras e padroes. Funciona offline e e o caminho principal.
+- **Motor externo** (futuro): IA via API/gateway, opt-in por consentimento explicito, recebendo apenas evidencias selecionadas. Nenhuma chave no desktop. `AnalysisSession.engine` distingue `local_rules` de `external_ai`.
+
+## Fronteiras de execucao
+
+| Ambiente | Pode | Nao pode |
+|---|---|---|
+| Navegador (web) | Chamar `/api/*`, validar respostas com contratos | Ver tokens Riot, sessao legivel por JS, segredos |
+| Servidor (API) | Guardar credenciais do provedor, falar com a Riot (apos aprovacao) | Logar `code`, `state`, cookies ou tokens |
+| Desktop | Dados locais (SQLite, videos), analise offline | Embutir chaves, ler memoria do jogo, interagir com Vanguard |
+
+---
+
+## Arquitetura anterior (v0.1)
+
+Monolito modular, local-first e somente desktop: `apps/desktop` (Tauri 2 + React + TS + Tailwind/shadcn), SQLite local planejado, importacao manual de MP4, IA opt-in futura. Os modulos de importacao, analytics, video e coaching continuam valendo e agora vivem no desktop sobre os pacotes compartilhados.

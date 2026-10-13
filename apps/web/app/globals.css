@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+/*
+ * Tokens PROVISORIOS. Os nomes sao o contrato com o futuro design system
+ * (Figma); os valores serao substituidos. Ver docs/ux/screen-specifications.md.
+ */
+:root {
+  --cyl-bg: #0e0f11;
+  --cyl-surface: #16181b;
+  --cyl-border: #2a2d32;
+  --cyl-text: #e8e9eb;
+  --cyl-text-muted: #9a9ea6;
+  --cyl-accent: #e0b84c;
+  --cyl-warning: #d9822b;
+  --cyl-danger: #d4524a;
+  --cyl-radius: 4px;
+}
+
+@theme inline {
+  --color-bg: var(--cyl-bg);
+  --color-surface: var(--cyl-surface);
+  --color-border: var(--cyl-border);
+  --color-text: var(--cyl-text);
+  --color-muted: var(--cyl-text-muted);
+  --color-accent: var(--cyl-accent);
+  --color-warning: var(--cyl-warning);
+  --color-danger: var(--cyl-danger);
+  --radius-cyl: var(--cyl-radius);
+}
+
+html,
+body {
+  background: var(--cyl-bg);
+  color: var(--cyl-text);
+}

@@ -1,0 +1,44 @@
+{
+  "format": "cyl-synthetic-valorant",
+  "formatVersion": 1,
+  "note": "Partida SINTETICA e parcial (2 rounds) para testes e demonstracao. Nao representa dados reais.",
+  "matchId": "syn-0002",
+  "map": "Bind",
+  "queue": "unrated",
+  "startedAt": "2026-10-02T19:30:00.000Z",
+  "durationSeconds": 260,
+  "players": [
+    { "ref": "p1", "name": "Synth Alpha", "team": "Blue", "agent": "Jett", "kills": 2, "deaths": 2, "assists": 0 },
+    { "ref": "p2", "name": "Synth Kilo", "team": "Blue", "agent": "Viper", "kills": 1, "deaths": 1, "assists": 1 },
+    { "ref": "p3", "name": "Synth Lima", "team": "Blue", "agent": "Fade", "kills": 0, "deaths": 2, "assists": 1 },
+    { "ref": "p4", "name": "Synth Mike", "team": "Blue", "agent": "Chamber", "kills": 1, "deaths": 1, "assists": 0 },
+    { "ref": "p5", "name": "Synth November", "team": "Blue", "agent": "Breach", "kills": 0, "deaths": 1, "assists": 2 },
+    { "ref": "p6", "name": "Synth Oscar", "team": "Red", "agent": "Phoenix", "kills": 2, "deaths": 1, "assists": 0 },
+    { "ref": "p7", "name": "Synth Papa", "team": "Red", "agent": "Astra", "kills": 1, "deaths": 1, "assists": 1 },
+    { "ref": "p8", "name": "Synth Quebec", "team": "Red", "agent": "Neon", "kills": 2, "deaths": 0, "assists": 0 },
+    { "ref": "p9", "name": "Synth Romeo", "team": "Red", "agent": "Deadlock", "kills": 1, "deaths": 1, "assists": 1 },
+    { "ref": "p10", "name": "Synth Sierra", "team": "Red", "agent": "Gekko", "kills": 1, "deaths": 1, "assists": 0 }
+  ],
+  "rounds": [
+    {
+      "number": 1,
+      "winner": "Red",
+      "events": [
+        { "t": 25000, "type": "kill", "actor": "p8", "victim": "p1" },
+        { "t": 33000, "type": "kill", "actor": "p1", "victim": "p6" },
+        { "t": 47000, "type": "kill", "actor": "p6", "victim": "p3" },
+        { "t": 59000, "type": "plant", "actor": "p7" }
+      ]
+    },
+    {
+      "number": 2,
+      "winner": "Blue",
+      "events": [
+        { "t": 141000, "type": "kill", "actor": "p1", "victim": "p9" },
+        { "t": 150000, "type": "kill", "actor": "p8", "victim": "p5" },
+        { "t": 166000, "type": "plant", "actor": "p10" },
+        { "t": 181000, "type": "defuse", "actor": "p2" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@cyl/web",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "CYL Sense Web: site institucional, login Riot (quando aprovado) e analises iniciais.",
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "dev:demo": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cyl/contracts": "workspace:*",
+    "next": "^16.4.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "^4.6.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

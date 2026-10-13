@@ -1,17 +1,21 @@
 {
   "name": "cyl-sense",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "CYL Sense - coaching inteligente para gamers (desktop Windows, local-first).",
+  "description": "CYL Sense - analise de desempenho para jogadores: Web, Desktop (Tauri) e API.",
   "packageManager": "pnpm@10.28.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.9"
   },
   "scripts": {
     "dev": "pnpm --filter @cyl/desktop tauri dev",
     "dev:web": "pnpm --filter @cyl/desktop dev",
     "build": "pnpm --filter @cyl/desktop tauri build",
     "build:web": "pnpm --filter @cyl/desktop build",
+    "dev:site": "pnpm --filter @cyl/web dev",
+    "build:site": "pnpm --filter @cyl/web build",
+    "dev:api": "pnpm --filter @cyl/api dev",
+    "dev:demo": "pnpm --parallel --filter @cyl/web --filter @cyl/api run dev:demo",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test"
   }

@@ -1,0 +1,56 @@
+{
+  "format": "cyl-synthetic-valorant",
+  "formatVersion": 1,
+  "note": "Partida SINTETICA e parcial (3 rounds) para testes e demonstracao. Nao representa dados reais.",
+  "matchId": "syn-0001",
+  "map": "Ascent",
+  "queue": "competitive",
+  "startedAt": "2026-10-01T20:00:00.000Z",
+  "durationSeconds": 420,
+  "players": [
+    { "ref": "p1", "name": "Synth Alpha", "team": "Red", "agent": "Jett", "kills": 3, "deaths": 1, "assists": 0 },
+    { "ref": "p2", "name": "Synth Bravo", "team": "Red", "agent": "Sova", "kills": 2, "deaths": 2, "assists": 1 },
+    { "ref": "p3", "name": "Synth Charlie", "team": "Red", "agent": "Omen", "kills": 1, "deaths": 2, "assists": 2 },
+    { "ref": "p4", "name": "Synth Delta", "team": "Red", "agent": "Killjoy", "kills": 2, "deaths": 1, "assists": 0 },
+    { "ref": "p5", "name": "Synth Echo", "team": "Red", "agent": "Sage", "kills": 0, "deaths": 2, "assists": 3 },
+    { "ref": "p6", "name": "Synth Foxtrot", "team": "Blue", "agent": "Reyna", "kills": 3, "deaths": 2, "assists": 0 },
+    { "ref": "p7", "name": "Synth Golf", "team": "Blue", "agent": "Skye", "kills": 1, "deaths": 2, "assists": 2 },
+    { "ref": "p8", "name": "Synth Hotel", "team": "Blue", "agent": "Brimstone", "kills": 2, "deaths": 2, "assists": 1 },
+    { "ref": "p9", "name": "Synth India", "team": "Blue", "agent": "Cypher", "kills": 1, "deaths": 2, "assists": 0 },
+    { "ref": "p10", "name": "Synth Juliet", "team": "Blue", "agent": "Raze", "kills": 1, "deaths": 0, "assists": 1 }
+  ],
+  "rounds": [
+    {
+      "number": 1,
+      "winner": "Red",
+      "events": [
+        { "t": 31000, "type": "kill", "actor": "p1", "victim": "p6" },
+        { "t": 38000, "type": "kill", "actor": "p6", "victim": "p5" },
+        { "t": 52000, "type": "plant", "actor": "p2" },
+        { "t": 61000, "type": "kill", "actor": "p4", "victim": "p9" },
+        { "t": 70000, "type": "kill", "actor": "p2", "victim": "p7" }
+      ]
+    },
+    {
+      "number": 2,
+      "winner": "Blue",
+      "events": [
+        { "t": 152000, "type": "kill", "actor": "p6", "victim": "p1" },
+        { "t": 160000, "type": "kill", "actor": "p8", "victim": "p3" },
+        { "t": 171000, "type": "kill", "actor": "p1", "victim": "p8" },
+        { "t": 183000, "type": "kill", "actor": "p10", "victim": "p2" }
+      ]
+    },
+    {
+      "number": 3,
+      "winner": "Red",
+      "events": [
+        { "t": 268000, "type": "kill", "actor": "p1", "victim": "p6" },
+        { "t": 279000, "type": "kill", "actor": "p3", "victim": "p9" },
+        { "t": 290000, "type": "plant", "actor": "p4" },
+        { "t": 301000, "type": "kill", "actor": "p7", "victim": "p5" },
+        { "t": 315000, "type": "kill", "actor": "p4", "victim": "p7" }
+      ]
+    }
+  ]
+}

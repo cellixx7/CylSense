@@ -1,0 +1,22 @@
+{
+  "name": "@cyl/contracts",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Contratos versionados (Zod) compartilhados entre desktop, web e API.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.6.0"
+  },
+  "devDependencies": {
+    "@cyl/config": "workspace:*",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

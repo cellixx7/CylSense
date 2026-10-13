@@ -15,3 +15,10 @@ apps/desktop/src-tauri/target/
 *.sqlite
 *.sqlite3
 *.db
+
+# Next.js (apps/web)
+.next/
+next-env.d.ts
+*.tsbuildinfo
+# Perfil de demonstracao da API (sem segredos)
+!services/api/.env.mock

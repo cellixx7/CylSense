@@ -1,0 +1,22 @@
+{
+  "name": "@cyl/core",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Portas do dominio: Result, erros de provedor e interfaces AuthProvider, MatchProvider, GameAdapter, MatchNormalizer.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cyl/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@cyl/config": "workspace:*",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

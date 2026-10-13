@@ -1,0 +1,25 @@
+{
+  "name": "@cyl/game-adapter-valorant",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Adaptador VALORANT: valida e normaliza partidas para o contrato Match.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cyl/contracts": "workspace:*",
+    "@cyl/core": "workspace:*",
+    "zod": "^4.6.0"
+  },
+  "devDependencies": {
+    "@cyl/config": "workspace:*",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

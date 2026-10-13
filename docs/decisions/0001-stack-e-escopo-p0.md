@@ -1,6 +1,6 @@
 # ADR 0001 - Stack e escopo do P0
 
-- Status: aceita
+- Status: aceita, parcialmente substituida pela [ADR 0002](0002-separacao-web-desktop-api.md) (web e API passam a existir; o desktop continua local-first)
 - Data: 2026-10-13
 
 ## Decisoes
