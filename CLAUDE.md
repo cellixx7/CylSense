@@ -51,7 +51,7 @@ pnpm build          # instalador (rodar no Windows)
 
 ## Status do backlog
 
-- [~] P0-01 Bootstrap do desktop: front-end verificado (typecheck, testes, build); falta validar `pnpm dev` e `pnpm build` no Windows (ver docs/architecture/p0-01-aceite.md)
+- [~] P0-01 Bootstrap do desktop: verificado no Linux (typecheck, testes, build web, cargo check/clippy, binario nativo); falta validar `pnpm dev` e `pnpm build` no Windows (ver docs/architecture/p0-01-aceite.md)
 - [ ] P0-02 Contratos e dominio
 - [ ] P0-03 SQLite
 - [ ] P0-04 Importacao
