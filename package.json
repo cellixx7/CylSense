@@ -1,0 +1,18 @@
+{
+  "name": "cyl-sense",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CYL Sense - coaching inteligente para gamers (desktop Windows, local-first).",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @cyl/desktop tauri dev",
+    "dev:web": "pnpm --filter @cyl/desktop dev",
+    "build": "pnpm --filter @cyl/desktop tauri build",
+    "build:web": "pnpm --filter @cyl/desktop build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test"
+  }
+}

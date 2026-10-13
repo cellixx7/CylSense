@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+}
+
+:root {
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.2 0.01 270);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.01 270);
+  --muted: oklch(0.96 0.005 270);
+  --muted-foreground: oklch(0.5 0.02 270);
+  --primary: oklch(0.55 0.2 290);
+  --primary-foreground: oklch(0.99 0 0);
+  --accent: oklch(0.94 0.03 290);
+  --accent-foreground: oklch(0.3 0.1 290);
+  --border: oklch(0.9 0.005 270);
+  --ring: oklch(0.55 0.2 290);
+}
+
+.dark {
+  --background: oklch(0.16 0.01 270);
+  --foreground: oklch(0.96 0.005 270);
+  --card: oklch(0.2 0.012 270);
+  --card-foreground: oklch(0.96 0.005 270);
+  --muted: oklch(0.24 0.012 270);
+  --muted-foreground: oklch(0.7 0.02 270);
+  --primary: oklch(0.68 0.19 290);
+  --primary-foreground: oklch(0.15 0.01 270);
+  --accent: oklch(0.28 0.05 290);
+  --accent-foreground: oklch(0.92 0.03 290);
+  --border: oklch(0.3 0.015 270);
+  --ring: oklch(0.68 0.19 290);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  }
+}
