@@ -36,7 +36,12 @@ O app inicia no Windows e pode ser compilado.
 - Binario executado sob Xvfb: janela nativa abre e exibe a navegacao lateral (Visao geral, Partidas, Video, Coaching, Configuracoes)
 - Scripts: `pnpm dev` = `tauri dev` (janela nativa) e `pnpm build` = `tauri build` (instalador); `dev:web`/`build:web` sao so o Vite
 
-- `pnpm dev` e `pnpm build` (instalador NSIS): **pendentes no Windows**.
+### Verificacao no Windows (2026-10-13, Windows 10 Pro 19045, Node 24.20, pnpm 10.28, Rust 1.99, WebView2 155)
+
+- `pnpm install --frozen-lockfile`: OK
+- `pnpm build`: OK; gerou `src-tauri/target/release/bundle/nsis/CYL Sense_0.1.0_x64-setup.exe` (2,12 MiB)
+- `pnpm dev`: OK; `target/debug/cyl-sense.exe` sobe com a janela nativa "CYL Sense"
+- Criterio de aceite atendido: o app inicia no Windows e pode ser compilado.
 - Icones em `src-tauri/icons/` sao provisorios (gerados de uma imagem simples); substituir pela identidade visual real com `pnpm --filter @cyl/desktop tauri icon <imagem.png>`.
 
 ## Fora de escopo
