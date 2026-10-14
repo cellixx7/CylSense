@@ -1,0 +1,25 @@
+{
+  "name": "@cyl/analytics",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Analytics Engine local: metricas, rounds, sessoes, padroes e evidencias deterministicas sobre partidas normalizadas.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cyl/contracts": "workspace:*",
+    "@cyl/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@cyl/config": "workspace:*",
+    "@cyl/game-adapter-valorant": "workspace:*",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}
