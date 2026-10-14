@@ -46,7 +46,7 @@ Branch `claude/vibrant-gauss-5lxtsf` limpa e alinhada com `origin` em `e4b56a3` 
 | Comando | Resultado |
 |---|---|
 | `pnpm typecheck` | OK nos 6 workspaces |
-| `pnpm test` | OK: **123 testes** (contracts 27, core 6, valorant 11, api 16, web 6, desktop **57**; eram 17) |
+| `pnpm test` | OK: **125 testes** (contracts 27, core 6, valorant 11, api 16, web 6, desktop **59**; eram 17) |
 | `cargo test` (src-tauri) | OK: **54 testes** (eram 39: +8 leitura de arquivo, +6 lote, +1 listagem) |
 | `cargo clippy --all-targets -- -D warnings` | OK, sem avisos |
 | `cargo fmt --check` | OK |
@@ -57,7 +57,7 @@ Branch `claude/vibrant-gauss-5lxtsf` limpa e alinhada com `origin` em `e4b56a3` 
 ### Cobertura dos testes
 
 - TS, pipeline: fixtures validas; ausente continua ausente (`syn-0002`); pacote local com ids novos; extensao maiuscula; JSON invalido sem eco do conteudo; extensao recusada; arquivo grande (tamanho declarado e real); raiz nao objeto; formato desconhecido; `formatVersion`/`schemaVersion` incompativeis; as 4 fixtures inconsistentes de `invalid/`; campo obrigatorio ausente; origem `riot_api` e origem divergente; pacote vazio, repetido, acima do limite e com videos; gravacao + reimportacao sem duplicar; pacote com varias partidas; falha do banco sem gravacao; seletor (so envia o limite, cancelamento, erros nativos, erro desconhecido generico).
-- TS, UI: historico carregando/vazio/erro/registros; previa sintetica e cancelar; importar e atualizar historico; reimportar sem duplicar; arquivo invalido sem expor conteudo; partida inconsistente; erro de permissao; dialogo cancelado; falha do banco ao gravar; detalhe completo; detalhe com dados ausentes; partida inexistente; navegacao no `App`.
+- TS, UI: historico carregando/vazio/erro/registros; previa sintetica e cancelar; importar e atualizar historico; reimportar sem duplicar; arquivo invalido sem expor conteudo; partida inconsistente; erro de permissao; dialogo cancelado; falha do banco ao gravar; detalhe completo; detalhe com dados ausentes; partida inexistente; navegacao no `App`; **regressao previa x confirmacao**: escolher o arquivo, ver a previa, cancelar e escolher de novo nao chamam nenhum metodo de escrita do `LocalStore`; so "Importar N partidas" chama `saveMatches` (uma vez). A ponte do seletor so envia `import_pick_file`. Conferido por mutacao: fazer a previa gravar quebra o teste.
 - Rust: leitura (`.json` valido, BOM, extensoes recusadas, limite e teto, UTF-8, inexistente, diretorio, permissao, mensagens sem caminho/conteudo); lote (grava tudo e reimportacao `unchanged` com persistencia apos reabrir; item invalido e conflito no banco desfazem o lote; vazio/repetido/excesso; origens diferentes; falha de gravacao); listagem com `externalId` e placar opcional.
 
 ### Desktop no Windows (`pnpm dev`, somente Tauri)

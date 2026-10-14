@@ -183,6 +183,17 @@ describe("seletor nativo (ponte com import_pick_file)", () => {
     expect(calls).toEqual([{ command: "import_pick_file", args: { maxBytes: 1024 } }]);
   });
 
+  it("regressao: escolher arquivo e validar so chama import_pick_file, nunca comandos de gravacao", async () => {
+    const commands: string[] = [];
+    const pick = createFilePicker(async (command) => {
+      commands.push(command);
+      return { name: "syn-0001.json", sizeBytes: 10, content: fixture("syn-0001.json") };
+    });
+    const r = await pick(DEFAULT_IMPORT_LIMITS.maxBytes);
+    expect(r.ok && r.value && planImport(r.value, { newId }).ok).toBe(true);
+    expect(commands).toEqual(["import_pick_file"]);
+  });
+
   it("cancelamento vira null", async () => {
     expect(await createFilePicker(async () => null)(1)).toEqual({ ok: true, value: null });
   });

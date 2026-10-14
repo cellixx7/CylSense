@@ -82,6 +82,35 @@ describe("Partidas: importacao", () => {
     expect(rows.size).toBe(0);
   });
 
+  it("regressao: escolher e ver a previa nao grava; so confirmar chama a persistencia", async () => {
+    const mem = memoryStore();
+    const writes = (["saveMatch", "saveMatches", "attachVideo", "addMarker", "updateMarker", "deleteMarker"] as const).map(
+      (method) => vi.spyOn(mem.store, method),
+    );
+    const totalWrites = () => writes.reduce((n, spy) => n + spy.mock.calls.length, 0);
+    const pick = vi.fn(picker(picked("syn-0001.json"), picked("syn-0001.json")));
+    setup(pick, mem);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Importar partida" }));
+    fireEvent.click(screen.getByRole("button", { name: "Escolher arquivo JSON" }));
+    await screen.findByText(/Arquivo valido/);
+    expect(pick).toHaveBeenCalledTimes(1);
+    expect(totalWrites()).toBe(0);
+    expect(mem.rows.size).toBe(0);
+
+    // Cancelar a previa e escolher de novo tambem nao grava.
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Escolher arquivo JSON" }));
+    await screen.findByText(/Arquivo valido/);
+    expect(totalWrites()).toBe(0);
+
+    fireEvent.click(screen.getByRole("button", { name: /^Importar 1 partida$/ }));
+    await screen.findByText(/Importacao concluida/);
+    expect(mem.store.saveMatches).toHaveBeenCalledTimes(1);
+    expect(totalWrites()).toBe(1);
+    expect(mem.rows.size).toBe(1);
+  });
+
   it("importar de novo nao duplica", async () => {
     const { rows } = setup(picker(picked("syn-0001.json"), picked("syn-0001.json")));
     await importVia("syn-0001.json");
