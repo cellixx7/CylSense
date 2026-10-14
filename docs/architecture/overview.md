@@ -26,7 +26,7 @@ flowchart LR
 | Produto | Papel | Estado na v0.2 |
 |---|---|---|
 | Web (`apps/web`) | Site institucional, login Riot, historico e analises iniciais, convite ao desktop | Estrutura minima executavel: landing, `/entrar`, `/partidas` (demo), `/download` |
-| Desktop (`apps/desktop`) | Ferramenta principal: analise aprofundada, video manual, CYL Coach, funciona offline | Inalterado (shell do P0-01) |
+| Desktop (`apps/desktop`) | Ferramenta principal: analise aprofundada, video manual, CYL Coach, funciona offline | Shell do P0-01 + contratos (P0-02) + SQLite local (P0-03) |
 | API (`services/api`) | Autenticacao, integracao Riot, sincronizacao idempotente, servicos compartilhados | Estrutura minima executavel; Riot **desativada**, modo `mock` so em desenvolvimento |
 
 ## Pacotes compartilhados
@@ -53,7 +53,8 @@ Regra de dependencia: `contracts` <- `core` <- `game-adapters/*` <- apps/servico
 | Diagnosticos | `Finding` = `fact` ou `hypothesis` (hipotese exige `confidence` < 1 e `limitations`); `sampleSize` opcional; sempre com evidencia | `@cyl/contracts` |
 | Recomendacoes | `CoachingRecommendation` (exige `findingIds`) | `@cyl/contracts` |
 | Video | `VideoReference` (offset) e `VideoMarker` (marcacao manual) | `@cyl/contracts` |
-| Arquivo local | `LocalImportEnvelope` (`schemaVersion`, base das migracoes do P0-03) | `@cyl/contracts` |
+| Arquivo local | `LocalImportEnvelope` (`schemaVersion`, formato de exportacao/importacao do P0-04) | `@cyl/contracts` |
+| Banco local | SQLite do desktop: `Match` como JSON validado, `VideoReference`, `VideoMarker` ([persistencia local](local-persistence.md), [ADR 0004](../decisions/0004-sqlite-local-e-postgresql-no-backend.md)) | schema SQLite v1 |
 
 Toda partida carrega `origin` (`synthetic`, `riot_api`, `user_import`). A UI e obrigada a sinalizar `synthetic`; a API expoe `containsSyntheticData` nas listagens.
 

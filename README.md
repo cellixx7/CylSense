@@ -101,7 +101,7 @@ O alvo do desktop e Windows, mas o codigo compila no Linux (usado para verificac
 sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev libayatana-appindicator3-dev pkg-config build-essential
 ```
 
-Checagem do lado Rust: `cd apps/desktop/src-tauri && cargo check`. O instalador NSIS so e gerado no Windows.
+Checagem do lado Rust: `cd apps/desktop/src-tauri && cargo check` (testes da persistencia SQLite: `cargo test`). O instalador NSIS so e gerado no Windows.
 
 ## Documentacao
 
@@ -118,6 +118,7 @@ Checagem do lado Rust: `cd apps/desktop/src-tauri && cargo check`. O instalador 
 - P0-01 (bootstrap do desktop): concluido, verificado no Linux e no Windows ([aceite](docs/architecture/p0-01-aceite.md)).
 - v0.2 (fundacao Web/Desktop/API): concluida ([estado e migracao](docs/architecture/v0.2-estado-e-migracao.md)).
 - P0-02 (contratos e dominio): concluido ([aceite](docs/architecture/p0-02-aceite.md)).
-- Proximo: P0-03 (SQLite e migracoes). Backlog completo em [docs/roadmap.md](docs/roadmap.md).
+- P0-03 (SQLite local, migracoes e repositorios): concluido ([aceite](docs/architecture/p0-03-aceite.md), [persistencia local](docs/architecture/local-persistence.md)).
+- Proximo: P0-04 (importacao de partidas). Backlog completo em [docs/roadmap.md](docs/roadmap.md).
 
 CYL Sense nao e afiliado a Riot Games.

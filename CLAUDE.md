@@ -6,7 +6,8 @@ Tres produtos (ADR 0002): **Web** (institucional, login, analises iniciais), **D
 
 ## Decisoes fixas
 
-- Desktop Windows: Tauri 2 + React + TypeScript strict + Tailwind + shadcn/ui; SQLite local (P0-03); funciona offline.
+- Desktop Windows: Tauri 2 + React + TypeScript strict + Tailwind + shadcn/ui; funciona offline.
+- SQLite local via rusqlite em comandos Rust tipados (ADR 0004): o front-end nunca envia SQL; migracoes so aditivas e nunca editadas depois de publicadas. PostgreSQL so na API (futuro).
 - Web: Next.js (App Router) + Tailwind; fala so com `/api/*` (proxy para a API, cookie httpOnly).
 - API: Node + Fastify + Zod, contratos versionados `/v1`; estado em memoria hoje, PostgreSQL no futuro.
 - Contratos compartilhados em `@cyl/contracts` (Zod). Portas em `@cyl/core`. Jogos via `packages/game-adapters/*`.
@@ -44,13 +45,14 @@ Pacotes internos sao TypeScript-fonte (sem build). Nao criar pacote vazio: `ui`,
 
 ```bash
 pnpm install
-pnpm dev            # desktop Tauri (requer Rust + WebView2)
+pnpm dev            # desktop Tauri (requer Rust + WebView2); VITE_CYL_DEV_SEED=1 grava fixtures sinteticas, CYL_SENSE_DATA_DIR isola o banco (so debug)
 pnpm dev:web        # front-end do DESKTOP no navegador (nome mantido por compatibilidade)
 pnpm dev:site       # site Next.js em :3000
 pnpm dev:api        # API em :4000 (Riot desativada)
 pnpm dev:demo       # API mock + site (login e partidas sinteticos)
 pnpm typecheck
 pnpm test
+cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml   # persistencia SQLite
 pnpm build:web      # front-end do desktop
 pnpm build:site     # site
 pnpm build          # instalador desktop (Windows)
@@ -73,7 +75,7 @@ Detalhes em [docs/roadmap.md](docs/roadmap.md).
 - [x] P0-01 Bootstrap do desktop: verificado no Linux (typecheck, testes, build web, cargo check/clippy, binario nativo) e no Windows (`pnpm dev` abre a janela, `pnpm build` gera instalador NSIS); ver docs/architecture/p0-01-aceite.md
 - [x] v0.2 Fundacao Web/Desktop/API (ver docs/architecture/v0.2-estado-e-migracao.md)
 - [x] P0-02 Contratos e dominio: contratos 1.1.0, adaptador sintetico com testes negativos e desktop consumindo os pacotes; ver docs/architecture/p0-02-aceite.md e ADR 0003
-- [ ] P0-03 SQLite
+- [x] P0-03 SQLite: banco em `%LOCALAPPDATA%\gg.cyl.sense\data`, schema v1, migracoes versionadas, partidas idempotentes, videos e marcacoes; ver docs/architecture/p0-03-aceite.md, local-persistence.md e ADR 0004
 - [ ] P0-04 Importacao
 - [ ] P0-05 Analytics Engine
 - [ ] P0-06 Dashboard

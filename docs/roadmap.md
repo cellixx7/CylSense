@@ -10,11 +10,11 @@ Legenda: [x] concluido, [~] parcial, [ ] pendente.
 ## P0 - Desktop local-first (sem Riot, sem IA paga)
 
 - [x] P0-02 Contratos e dominio: contratos 1.1.0 (lados, placar, headshots, dano, cobertura de eventos, marcacoes de video, envelope local), adaptador sintetico evoluido e desktop ligado aos pacotes; ver docs/architecture/p0-02-aceite.md e ADR 0003
-- [ ] P0-03 SQLite (migracoes nao destrutivas, armazenando os contratos)
+- [x] P0-03 SQLite: rusqlite em comandos Rust tipados, schema v1, migracoes transacionais com checksum e backup, partidas idempotentes por (game, origin, externalId), referencias de video e marcacoes; ver docs/architecture/p0-03-aceite.md, [persistencia local](architecture/local-persistence.md) e [ADR 0004](decisions/0004-sqlite-local-e-postgresql-no-backend.md)
 - [ ] P0-04 Importacao (fixtures sinteticas e arquivos do usuario via `@cyl/game-adapter-valorant`)
 - [ ] P0-05 Analytics Engine (`MatchMetrics` deterministicas; pacote `@cyl/analytics`)
 - [ ] P0-06 Dashboard
-- [ ] P0-07 Video manual (`VideoReference`, offset e marcacoes)
+- [ ] P0-07 Video manual (UI e leitura do MP4; a persistencia de `VideoReference`, offset e marcacoes ja existe desde o P0-03)
 - [ ] P0-08 Coaching local (`Finding` e `CoachingRecommendation`; pacote `@cyl/coaching`)
 - [ ] P0-09 Qualidade e build (ESLint/Prettier, CI, Playwright onde fizer sentido)
 
