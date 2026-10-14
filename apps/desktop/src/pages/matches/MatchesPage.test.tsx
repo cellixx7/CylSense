@@ -197,6 +197,33 @@ describe("Partidas: detalhe", () => {
     expect(within(coverage).getByText(/Dano/)).toHaveTextContent("Dano: nao informado");
   });
 
+  it("metricas calculadas pelo motor local, por jogador, com indisponiveis explicados", async () => {
+    setup(picker(picked("syn-0001.json")));
+    await importVia("syn-0001.json");
+    fireEvent.click(screen.getByRole("button", { name: "Abrir" }));
+    const table = await screen.findByRole("table", { name: "Metricas calculadas" });
+    const row = (label: string) => within(table).getByText(label, { selector: "td" }).closest("tr")!;
+    expect(row("K/D")).toHaveTextContent("3,00");
+    expect(row("Abates com headshot / abates")).toHaveTextContent(/66,7\s?%/);
+    expect(row("Abates com headshot / abates")).toHaveTextContent("2 / 3");
+    expect(row("Primeiros abates da rodada")).toHaveTextContent("Requer cobertura completa de eventos");
+    expect(row("Aproveitamento na defesa")).toHaveTextContent("Indefinido (divisao por zero)");
+    const analytics = screen.getByRole("region", { name: "Metricas calculadas" });
+    expect(within(analytics).getByText(/fracao de abates com headshot, nao o HS%/)).toBeInTheDocument();
+
+    fireEvent.change(within(analytics).getByRole("combobox"), { target: { value: "p6" } });
+    expect(row("K/D")).toHaveTextContent("1,50");
+  });
+
+  it("metricas sem headshot e dano na origem aparecem como nao informadas", async () => {
+    setup(picker(picked("syn-0002.json")));
+    await importVia("syn-0002.json");
+    fireEvent.click(screen.getByRole("button", { name: "Abrir" }));
+    const table = await screen.findByRole("table", { name: "Metricas calculadas" });
+    expect(within(table).getByText("Dano causado").closest("tr")).toHaveTextContent("Nao informado");
+    expect(within(table).getByText("Abates com headshot").closest("tr")).toHaveTextContent("Nao informado");
+  });
+
   it("partida inexistente", async () => {
     const mem = memoryStore();
     const { MatchDetail } = await import("./MatchDetail");

@@ -14,6 +14,7 @@ import {
   TEAM_LABEL,
   WIN_CONDITION_LABEL,
 } from "./format";
+import { MatchAnalytics } from "./MatchAnalytics";
 
 type DetailState =
   | { kind: "loading" }
@@ -141,6 +142,10 @@ function MatchBody({ stored }: { stored: StoredMatch }) {
           <Availability label="Abates com headshot" value={available.headshots} />
           <Availability label="Dano" value={available.damage} />
         </ul>
+      </Section>
+
+      <Section title="Metricas calculadas">
+        <MatchAnalytics match={m} />
       </Section>
 
       <Section title="Times e participantes">

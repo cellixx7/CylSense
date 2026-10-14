@@ -176,7 +176,7 @@ function outcomeOf(match: Match, team: Team): MatchOutcome {
 
 function matchLimitations(match: Match, a: MatchDataAvailability, complete: boolean, rounds: RoundAnalysis): string[] {
   const out: string[] = [];
-  if (match.origin === "synthetic") out.push("Dados sinteticos: nao representam partidas reais.");
+  if (match.origin === "synthetic") out.push("Origem sintetica: os numeros nao descrevem uma partida real.");
   if (match.rounds.length > 0) out.push("Metricas por rodada assumem que o jogador participou de todas as rodadas registradas.");
   if (!a.result) out.push("Placar nao informado: resultado da partida desconhecido.");
   if (a.headshots) out.push("Headshot aqui e a fracao de abates com headshot, nao o HS% por disparos.");

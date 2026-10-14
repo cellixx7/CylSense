@@ -12,6 +12,7 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@cyl/analytics": "workspace:*",
     "@cyl/contracts": "workspace:*",
     "@cyl/core": "workspace:*",
     "@cyl/game-adapter-valorant": "workspace:*",

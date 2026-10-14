@@ -10,6 +10,9 @@ importers:
 
   apps/desktop:
     dependencies:
+      '@cyl/analytics':
+        specifier: workspace:*
+        version: link:../../packages/analytics
       '@cyl/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
