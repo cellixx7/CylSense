@@ -1,13 +1,19 @@
 import { CONTRACTS_VERSION } from "@cyl/contracts";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { nativeFilePicker } from "@/import/picker";
 import { cn } from "@/lib/utils";
 import { DEFAULT_ROUTE, NAV_ITEMS, type RouteId } from "@/navigation";
+import { MatchesPage } from "@/pages/matches/MatchesPage";
 import { Placeholder } from "@/pages/Placeholder";
+import { nativeLocalStore } from "@/storage/native";
 import { describeStorage, useStorageStatus } from "@/storage/useStorageStatus";
 
 export default function App() {
   const [route, setRoute] = useState<RouteId>(DEFAULT_ROUTE);
-  const storage = useStorageStatus();
+  const [dataVersion, setDataVersion] = useState(0);
+  const storage = useStorageStatus(dataVersion);
+  const store = useMemo(nativeLocalStore, []);
+  const pickFile = useMemo(nativeFilePicker, []);
   const current = NAV_ITEMS.find((item) => item.id === route) ?? NAV_ITEMS[0];
 
   return (
@@ -42,7 +48,13 @@ export default function App() {
         </nav>
         <p className="px-5 py-4 text-xs text-muted-foreground">v0.1.0 · contratos {CONTRACTS_VERSION} · {describeStorage(storage)} · offline</p>
       </aside>
-      <main className="flex-1 overflow-auto">{current && <Placeholder item={current} />}</main>
+      <main className="flex-1 overflow-auto">
+        {route === "matches" ? (
+          <MatchesPage store={store} pickFile={pickFile} onDataChanged={() => setDataVersion((v) => v + 1)} />
+        ) : (
+          current && <Placeholder item={current} />
+        )}
+      </main>
     </div>
   );
 }

@@ -21,7 +21,14 @@ describe("App shell", () => {
     expect(screen.getByRole("button", { name: "Video" })).toHaveAttribute("aria-current", "page");
   });
 
-  it("nao exibe dados de partidas no P0-01", () => {
+  it("Partidas abre a secao real (fora do Tauri explica que o historico e local)", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Partidas" }));
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Partidas");
+    expect(screen.getByText(/somente no aplicativo desktop/)).toBeInTheDocument();
+  });
+
+  it("a Visao geral nao exibe dados de partidas", () => {
     render(<App />);
     expect(screen.queryByText(/K\/D|ACS|Headshots/i)).not.toBeInTheDocument();
   });

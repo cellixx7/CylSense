@@ -8,7 +8,8 @@ let seedOnce: Promise<void> | undefined;
 export type StorageStatusView = { kind: "browser" } | { kind: "loading" } | { kind: "ready"; status: StorageStatus };
 
 /** Estado do banco local para o rodape (diagnostico, nao e tela de dados). */
-export function useStorageStatus(): StorageStatusView {
+/** `refreshKey`: mudar o valor recarrega o status (ex.: depois de uma importacao). */
+export function useStorageStatus(refreshKey = 0): StorageStatusView {
   const [view, setView] = useState<StorageStatusView>(() => (nativeLocalStore() ? { kind: "loading" } : { kind: "browser" }));
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export function useStorageStatus(): StorageStatusView {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [refreshKey]);
 
   return view;
 }
