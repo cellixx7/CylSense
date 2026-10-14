@@ -60,8 +60,23 @@ export function checkFinding(finding: Finding, index: EvidenceIndex): string[] {
     const problem = checkEvidence(e, index);
     if (problem) issues.push(`evidence[${i}]: ${problem}`);
   });
-  if (finding.sampleSize?.unit === "matches" && finding.sampleSize.count > index.matches.size) {
-    issues.push("sampleSize maior que as partidas analisadas");
+  const limit = finding.sampleSize ? populationOf(finding.sampleSize.unit, index) : undefined;
+  if (finding.sampleSize && limit !== undefined && finding.sampleSize.count > limit) {
+    issues.push(`sampleSize maior que ${UNIT_LABEL[finding.sampleSize.unit]} (${limit})`);
   }
   return issues;
+}
+
+const UNIT_LABEL = { matches: "as partidas analisadas", rounds: "as rodadas analisadas", events: "os eventos registrados" } as const;
+
+/**
+ * Populacao efetivamente analisada para cada unidade de amostra: partidas,
+ * rodadas registradas e eventos registrados (com cobertura parcial, os
+ * eventos registrados sao o teto; nao se presume evento nao observado).
+ */
+function populationOf(unit: "matches" | "rounds" | "events", index: EvidenceIndex): number {
+  if (unit === "matches") return index.matches.size;
+  let total = 0;
+  for (const { match } of index.matches.values()) total += unit === "rounds" ? match.rounds.length : match.events.length;
+  return total;
 }

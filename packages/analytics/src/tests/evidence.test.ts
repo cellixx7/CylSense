@@ -30,6 +30,8 @@ describe("evidencias", () => {
     ["rodada inexistente", { kind: "round", matchId: m1.id, roundNumber: 4 }, /rodada inexistente/],
     ["metrica desconhecida", { kind: "metric", matchId: m1.id, metricKey: "acs", value: 200 }, /desconhecida/],
     ["metrica indisponivel", { kind: "metric", matchId: m2.id, metricKey: "damage_dealt", value: 0 }, /indisponivel/],
+    ["metrica so de sessao (nao calculada por partida)", { kind: "metric", matchId: m1.id, metricKey: "first_death_ratio", value: 0 }, /desconhecida/],
+    ["metrica de cobertura completa em partida parcial", { kind: "metric", matchId: m1.id, metricKey: "first_deaths", value: 0 }, /indisponivel/],
     ["valor diferente do calculado", { kind: "metric", matchId: m1.id, metricKey: "kd_ratio", value: 2 }, /valor diferente/],
     ["video (fora do motor)", { kind: "video", videoId: "v1", startMs: 0, endMs: 10 }, /video/],
     ["malformada", { kind: "round", matchId: m1.id, roundNumber: 0 }, /malformada/],
@@ -60,9 +62,29 @@ describe("evidencias", () => {
     expect(checkFinding(f, index)).toEqual([
       "finding de outra sessao",
       "evidence[0]: evento inexistente na partida",
-      "sampleSize maior que as partidas analisadas",
+      "sampleSize maior que as partidas analisadas (2)",
     ]);
     expect(checkFinding({ ...f, evidence: [] } as unknown as Finding, index)[0]).toMatch(/malformado/);
+  });
+
+  it.each<["rounds" | "events", number, number]>([
+    // syn-0001 (3 rodadas, 14 eventos) + syn-0002 (2 rodadas, 8 eventos)
+    ["rounds", 5, 6],
+    ["events", 22, 23],
+  ])("sampleSize em %s limitado a populacao analisada", (unit, max, over) => {
+    const f: Finding = {
+      kind: "fact",
+      id: "f2",
+      sessionId: "s1",
+      title: "t",
+      statement: "s",
+      evidence: [{ kind: "round", matchId: m1.id, roundNumber: 1 }],
+      sampleSize: { count: max, unit },
+    };
+    expect(checkFinding(f, index)).toEqual([]);
+    expect(checkFinding({ ...f, sampleSize: { count: over, unit } }, index)).toEqual([
+      `sampleSize maior que ${unit === "rounds" ? "as rodadas analisadas" : "os eventos registrados"} (${max})`,
+    ]);
   });
 
   it("findings gerados pelo motor tambem passam no validador dos contratos", () => {
