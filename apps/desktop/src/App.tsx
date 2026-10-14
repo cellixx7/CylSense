@@ -3,9 +3,11 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { DEFAULT_ROUTE, NAV_ITEMS, type RouteId } from "@/navigation";
 import { Placeholder } from "@/pages/Placeholder";
+import { describeStorage, useStorageStatus } from "@/storage/useStorageStatus";
 
 export default function App() {
   const [route, setRoute] = useState<RouteId>(DEFAULT_ROUTE);
+  const storage = useStorageStatus();
   const current = NAV_ITEMS.find((item) => item.id === route) ?? NAV_ITEMS[0];
 
   return (
@@ -38,7 +40,7 @@ export default function App() {
             );
           })}
         </nav>
-        <p className="px-5 py-4 text-xs text-muted-foreground">v0.1.0 · contratos {CONTRACTS_VERSION} · offline</p>
+        <p className="px-5 py-4 text-xs text-muted-foreground">v0.1.0 · contratos {CONTRACTS_VERSION} · {describeStorage(storage)} · offline</p>
       </aside>
       <main className="flex-1 overflow-auto">{current && <Placeholder item={current} />}</main>
     </div>
