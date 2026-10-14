@@ -1,6 +1,9 @@
 //! Comandos Tauri da persistencia local. Superficie fechada: operacoes
 //! tipadas, nenhuma execucao de SQL vinda do front-end.
 
+use crate::import_file::{
+    read_import_file, ImportFileError, ImportFileErrorCode, PickedFile, DEFAULT_MAX_BYTES,
+};
 use crate::storage::{
     migrations, AttachVideoInput, AttachVideoResult, MarkerInput, MatchListItem, SaveMatchInput,
     SaveMatchResult, Storage, StorageCounts, StorageError, StorageErrorCode, StorageResult,
@@ -9,6 +12,14 @@ use crate::storage::{
 use serde::Serialize;
 use std::sync::Mutex;
 use tauri::State;
+
+/// Falha generica de leitura, sem detalhes do sistema (que poderiam ter o caminho).
+fn unreadable() -> ImportFileError {
+    ImportFileError {
+        code: ImportFileErrorCode::ReadFailed,
+        message: "nao foi possivel ler o arquivo".into(),
+    }
+}
 
 /// Banco aberto, ou o erro que impediu a abertura (o app segue funcionando).
 pub struct StorageState(Mutex<StorageResult<Storage>>);
@@ -146,4 +157,40 @@ pub async fn marker_update(
 #[tauri::command]
 pub async fn marker_delete(state: State<'_, StorageState>, id: String) -> StorageResult<()> {
     state.with(|s| s.delete_marker(&id))
+}
+
+/// Grava um lote de partidas de forma atomica (importacao de arquivo).
+#[tauri::command]
+pub async fn match_save_batch(
+    state: State<'_, StorageState>,
+    inputs: Vec<SaveMatchInput>,
+) -> StorageResult<Vec<SaveMatchResult>> {
+    state.with(|s| s.save_matches(&inputs))
+}
+
+/// Abre o dialogo nativo (somente `.json`) e le o arquivo escolhido.
+/// `None` = o usuario cancelou. O front-end nunca informa um caminho.
+#[tauri::command]
+pub async fn import_pick_file(
+    app: tauri::AppHandle,
+    max_bytes: Option<u64>,
+) -> Result<Option<PickedFile>, ImportFileError> {
+    use tauri_plugin_dialog::DialogExt;
+    let limit = max_bytes.unwrap_or(DEFAULT_MAX_BYTES);
+    // O dialogo bloqueia: fica fora da thread principal e do executor async.
+    tauri::async_runtime::spawn_blocking(move || {
+        let picked = app
+            .dialog()
+            .file()
+            .set_title("Importar partida")
+            .add_filter("Partida CYL Sense (JSON)", &["json"])
+            .blocking_pick_file();
+        let Some(path) = picked else {
+            return Ok(None);
+        };
+        let path = path.into_path().map_err(|_| unreadable())?;
+        read_import_file(&path, limit).map(Some)
+    })
+    .await
+    .map_err(|_| unreadable())?
 }

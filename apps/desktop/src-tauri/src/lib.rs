@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use tauri::Manager;
 
 mod commands;
+mod import_file;
 pub mod storage;
 
 use commands::StorageState;
@@ -78,6 +79,7 @@ fn open_storage(app: &tauri::AppHandle) -> StorageState {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let state = open_storage(app.handle());
             app.manage(state);
@@ -89,6 +91,8 @@ pub fn run() {
             commands::match_save,
             commands::match_get,
             commands::match_list,
+            commands::match_save_batch,
+            commands::import_pick_file,
             commands::video_attach,
             commands::video_list,
             commands::marker_add,

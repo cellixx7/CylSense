@@ -857,3 +857,152 @@ fn respostas_seguem_o_formato_dos_contratos() {
     let e = serde_json::to_value(StorageError::not_found("x")).unwrap();
     assert_eq!(e, json!({ "code": "not_found", "message": "x" }));
 }
+
+// ---------- importacao em lote (P0-04) ----------
+
+fn batch(items: Vec<Value>) -> Vec<SaveMatchInput> {
+    items
+        .into_iter()
+        .map(|data| SaveMatchInput {
+            data,
+            contracts_version: CONTRACTS.into(),
+        })
+        .collect()
+}
+
+#[test]
+fn lote_grava_tudo_e_reimportacao_nao_duplica() {
+    let (_dir, path) = temp_db();
+    {
+        let mut s = Storage::open(&path).unwrap();
+        let r = s
+            .save_matches(&batch(vec![
+                sample_match("a", "syn-a"),
+                sample_match("b", "syn-b"),
+            ]))
+            .unwrap();
+        assert!(r.iter().all(|x| x.outcome == SaveMatchOutcome::Inserted));
+        // Mesmo arquivo de novo, com ids locais novos (o adaptador gera outro id).
+        let again = s
+            .save_matches(&batch(vec![
+                sample_match("a2", "syn-a"),
+                sample_match("b2", "syn-b"),
+            ]))
+            .unwrap();
+        assert_eq!(
+            again
+                .iter()
+                .map(|x| (x.id.as_str(), x.outcome))
+                .collect::<Vec<_>>(),
+            [
+                ("a", SaveMatchOutcome::Unchanged),
+                ("b", SaveMatchOutcome::Unchanged)
+            ]
+        );
+    }
+    let s = Storage::open(&path).unwrap();
+    assert_eq!(
+        s.counts().unwrap().matches,
+        2,
+        "persistiu apos reabrir, sem duplicar"
+    );
+}
+
+#[test]
+fn lote_com_item_invalido_nao_grava_nada() {
+    let mut s = Storage::open_in_memory().unwrap();
+    let mut bad = sample_match("b", "syn-b");
+    bad["schemaVersion"] = json!(2);
+    let e = s
+        .save_matches(&batch(vec![sample_match("a", "syn-a"), bad]))
+        .unwrap_err();
+    assert_eq!(e.code, StorageErrorCode::IncompatibleSchema);
+    assert!(e.message.starts_with("item 2:"), "{}", e.message);
+    assert_eq!(s.counts().unwrap().matches, 0);
+}
+
+#[test]
+fn lote_com_conflito_no_banco_e_desfeito_por_inteiro() {
+    let mut s = Storage::open_in_memory().unwrap();
+    save(&mut s, sample_match("ocupado", "syn-x")).unwrap();
+    // O 1o item seria inserido; o 2o usa um id local de outra partida.
+    let e = s
+        .save_matches(&batch(vec![
+            sample_match("a", "syn-a"),
+            sample_match("ocupado", "syn-b"),
+        ]))
+        .unwrap_err();
+    assert_eq!(e.code, StorageErrorCode::Conflict);
+    assert_eq!(s.counts().unwrap().matches, 1, "o item 1 foi desfeito");
+    assert!(s.get_match("a").unwrap().is_none());
+}
+
+#[test]
+fn lote_recusa_vazio_repetido_e_excesso() {
+    let mut s = Storage::open_in_memory().unwrap();
+    assert_eq!(
+        s.save_matches(&[]).unwrap_err().code,
+        StorageErrorCode::InvalidData
+    );
+    let e = s
+        .save_matches(&batch(vec![
+            sample_match("a", "syn-a"),
+            sample_match("b", "syn-a"),
+        ]))
+        .unwrap_err();
+    assert_eq!(e.message, "item 2: partida repetida no lote");
+    let many = (0..=matches::BATCH_MAX)
+        .map(|i| sample_match(&format!("m{i}"), &format!("syn-{i}")))
+        .collect();
+    assert_eq!(
+        s.save_matches(&batch(many)).unwrap_err().code,
+        StorageErrorCode::InvalidData
+    );
+    assert_eq!(s.counts().unwrap().matches, 0);
+}
+
+#[test]
+fn lote_mesmo_externalid_de_origens_diferentes_nao_se_mistura() {
+    let mut s = Storage::open_in_memory().unwrap();
+    let mut user = sample_match("u", "ext-1");
+    user["origin"] = json!("user_import");
+    s.save_matches(&batch(vec![sample_match("s", "ext-1"), user]))
+        .unwrap();
+    assert_eq!(s.counts().unwrap().matches, 2);
+}
+
+#[test]
+fn lote_com_falha_de_gravacao_nao_grava_nada() {
+    let mut s = Storage::open_in_memory().unwrap();
+    s.conn().pragma_update(None, "query_only", "ON").unwrap();
+    let e = s
+        .save_matches(&batch(vec![sample_match("a", "syn-a")]))
+        .unwrap_err();
+    assert!(
+        matches!(
+            e.code,
+            StorageErrorCode::WriteFailed | StorageErrorCode::Unavailable
+        ),
+        "{e}"
+    );
+    s.conn().pragma_update(None, "query_only", "OFF").unwrap();
+    assert_eq!(s.counts().unwrap().matches, 0);
+}
+
+#[test]
+fn listagem_traz_externalid_e_resultado_quando_existe() {
+    let mut s = Storage::open_in_memory().unwrap();
+    let mut with_result = sample_match("r", "syn-r");
+    with_result["result"] = json!({ "score": { "red": 1, "blue": 1 }, "winner": "draw" });
+    save(&mut s, with_result).unwrap();
+    save(&mut s, sample_match("n", "syn-n")).unwrap();
+    let list = s.list_matches(10, 0).unwrap();
+    let r = list.iter().find(|m| m.id == "r").unwrap();
+    assert_eq!(r.external_id, "syn-r");
+    assert_eq!(r.result.as_ref().unwrap()["winner"], json!("draw"));
+    let n = list.iter().find(|m| m.id == "n").unwrap();
+    assert!(n.result.is_none(), "sem placar continua ausente");
+    let json = serde_json::to_value(n).unwrap();
+    assert!(json.get("result").is_none());
+    assert_eq!(json["externalId"], json!("syn-n"));
+}

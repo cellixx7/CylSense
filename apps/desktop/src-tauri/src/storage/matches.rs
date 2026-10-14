@@ -6,9 +6,10 @@
 
 use super::error::{sql, StorageError, StorageErrorCode, StorageResult};
 use super::Storage;
-use rusqlite::{params, OptionalExtension, Row, TransactionBehavior};
+use rusqlite::{params, OptionalExtension, Row, Transaction, TransactionBehavior};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use std::collections::HashSet;
 
 /// `schemaVersion` de `Match` que esta build sabe gravar.
 pub const SUPPORTED_MATCH_SCHEMA_VERSION: u64 = 1;
@@ -17,6 +18,8 @@ pub const SUPPORTED_CONTRACTS_MAJOR: u64 = 1;
 const KNOWN_GAMES: &[&str] = &["valorant"];
 const KNOWN_ORIGINS: &[&str] = &["synthetic", "riot_api", "user_import"];
 const LIST_MAX: u32 = 500;
+/// Maximo de partidas por lote em `save_matches`.
+pub const BATCH_MAX: usize = 200;
 
 pub(super) const NOW: &str = "strftime('%Y-%m-%dT%H:%M:%fZ', 'now')";
 
@@ -69,11 +72,15 @@ pub struct MatchListItem {
     pub id: String,
     pub game: String,
     pub origin: String,
+    pub external_id: String,
     pub map: String,
     pub mode: String,
     pub started_at: String,
     pub duration_seconds: i64,
     pub rounds_played: i64,
+    /// `MatchResult` gravado (o front-end valida com o contrato); ausente = nao informado.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub result: Option<Value>,
     pub imported_at: String,
     pub updated_at: String,
 }
@@ -224,13 +231,60 @@ impl Storage {
     ///   marcacao de video aponte para um round que deixaria de existir.
     pub fn save_match(&mut self, input: &SaveMatchInput) -> StorageResult<SaveMatchResult> {
         check_contracts_version(&input.contracts_version)?;
-        let ident = identity(&input.data)?;
-
+        identity(&input.data)?;
         let tx = self
             .conn
             .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(sql("falha ao iniciar transacao"))?;
+        let result = Self::save_in(&tx, input)?;
+        tx.commit().map_err(sql("falha ao confirmar a gravacao"))?;
+        Ok(result)
+    }
 
+    /// Grava varias partidas numa unica transacao: ou todas sao gravadas, ou
+    /// nenhuma (o primeiro erro desfaz o lote inteiro). Mesmas regras de
+    /// `save_match`, ate `BATCH_MAX` itens. Identidade repetida no lote e
+    /// recusada, para que o resultado de cada item seja inequivoco.
+    pub fn save_matches(
+        &mut self,
+        inputs: &[SaveMatchInput],
+    ) -> StorageResult<Vec<SaveMatchResult>> {
+        let at = |i: usize| {
+            move |e: StorageError| {
+                StorageError::new(e.code, format!("item {}: {}", i + 1, e.message))
+            }
+        };
+        if inputs.is_empty() {
+            return Err(StorageError::invalid("lote vazio"));
+        }
+        if inputs.len() > BATCH_MAX {
+            return Err(StorageError::invalid(format!(
+                "lote com mais de {BATCH_MAX} partidas"
+            )));
+        }
+        let mut seen = HashSet::new();
+        for (i, input) in inputs.iter().enumerate() {
+            check_contracts_version(&input.contracts_version).map_err(at(i))?;
+            let ident = identity(&input.data).map_err(at(i))?;
+            if !seen.insert((ident.game, ident.origin, ident.external_id)) {
+                return Err(at(i)(StorageError::invalid("partida repetida no lote")));
+            }
+        }
+        let tx = self
+            .conn
+            .transaction_with_behavior(TransactionBehavior::Immediate)
+            .map_err(sql("falha ao iniciar transacao"))?;
+        let mut results = Vec::with_capacity(inputs.len());
+        for (i, input) in inputs.iter().enumerate() {
+            results.push(Self::save_in(&tx, input).map_err(at(i))?);
+        }
+        tx.commit().map_err(sql("falha ao confirmar a gravacao"))?;
+        Ok(results)
+    }
+
+    /// Regras de `save_match` dentro de uma transacao ja aberta (sem commit).
+    fn save_in(tx: &Transaction<'_>, input: &SaveMatchInput) -> StorageResult<SaveMatchResult> {
+        let ident = identity(&input.data)?;
         let existing: Option<(String, String, i64)> = tx
             .query_row(
                 "SELECT id, data_json, match_schema_version FROM matches WHERE game = ?1 AND origin = ?2 AND external_id = ?3",
@@ -325,7 +379,6 @@ impl Storage {
                 }
             }
         };
-        tx.commit().map_err(sql("falha ao confirmar a gravacao"))?;
         Ok(result)
     }
 
@@ -347,10 +400,10 @@ impl Storage {
         let mut stmt = self
             .conn
             .prepare(
-                "SELECT id, game, origin,
+                "SELECT id, game, origin, external_id,
                         json_extract(data_json, '$.map'), json_extract(data_json, '$.mode'), started_at,
                         json_extract(data_json, '$.durationSeconds'), json_array_length(data_json, '$.rounds'),
-                        imported_at, updated_at
+                        imported_at, updated_at, json_extract(data_json, '$.result')
                  FROM matches ORDER BY started_at DESC, id LIMIT ?1 OFFSET ?2",
             )
             .map_err(sql("falha ao listar partidas"))?;
@@ -360,13 +413,18 @@ impl Storage {
                     id: r.get(0)?,
                     game: r.get(1)?,
                     origin: r.get(2)?,
-                    map: r.get::<_, Option<String>>(3)?.unwrap_or_default(),
-                    mode: r.get::<_, Option<String>>(4)?.unwrap_or_default(),
-                    started_at: r.get(5)?,
-                    duration_seconds: r.get::<_, Option<i64>>(6)?.unwrap_or(0),
-                    rounds_played: r.get::<_, Option<i64>>(7)?.unwrap_or(0),
-                    imported_at: r.get(8)?,
-                    updated_at: r.get(9)?,
+                    external_id: r.get(3)?,
+                    map: r.get::<_, Option<String>>(4)?.unwrap_or_default(),
+                    mode: r.get::<_, Option<String>>(5)?.unwrap_or_default(),
+                    started_at: r.get(6)?,
+                    duration_seconds: r.get::<_, Option<i64>>(7)?.unwrap_or(0),
+                    rounds_played: r.get::<_, Option<i64>>(8)?.unwrap_or(0),
+                    imported_at: r.get(9)?,
+                    updated_at: r.get(10)?,
+                    // JSON ilegivel vira ausente; a leitura completa (`get_match`) acusa o dano.
+                    result: r
+                        .get::<_, Option<String>>(11)?
+                        .and_then(|raw| serde_json::from_str(&raw).ok()),
                 })
             })
             .and_then(|it| it.collect::<Result<Vec<_>, _>>())
