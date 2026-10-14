@@ -2,6 +2,7 @@ import {
   CONTRACTS_VERSION,
   IsoDateTime,
   Match,
+  MatchResult,
   MatchSummary,
   VideoMarker,
   VideoReference,
@@ -42,7 +43,13 @@ export interface StoredMatch {
   match: Match;
 }
 
-export type MatchListItem = MatchSummary & { importedAt: string; updatedAt: string };
+export type MatchListItem = MatchSummary & {
+  externalId: string;
+  /** Placar gravado; ausente = nao informado pela origem. */
+  result?: MatchResult;
+  importedAt: string;
+  updatedAt: string;
+};
 
 /** `VideoReference` + caminho local (fica so no desktop). */
 export type StoredVideo = VideoReference & { localPath: string; updatedAt: string };
@@ -83,6 +90,8 @@ export interface MarkerUpdate {
 export interface LocalStore {
   status(): Promise<Result<StorageStatus, StorageError>>;
   saveMatch(match: Match): Promise<Result<{ id: string; outcome: SaveMatchOutcome }, StorageError>>;
+  /** Lote atomico: todas as partidas sao gravadas, ou nenhuma. */
+  saveMatches(matches: Match[]): Promise<Result<{ id: string; outcome: SaveMatchOutcome }[], StorageError>>;
   getMatch(id: string): Promise<Result<StoredMatch | null, StorageError>>;
   listMatches(page?: { limit?: number; offset?: number }): Promise<Result<MatchListItem[], StorageError>>;
   attachVideo(input: AttachVideoInput): Promise<Result<{ video: StoredVideo; created: boolean }, StorageError>>;
@@ -165,7 +174,20 @@ function parseListItem(v: unknown): Result<MatchListItem, StorageError> {
   if (!base.ok) return base;
   const summary = parse(MatchSummary, v, "listagem");
   if (!summary.ok) return summary;
-  return ok({ ...summary.value, importedAt: base.value.importedAt as string, updatedAt: base.value.updatedAt as string });
+  const { externalId, result } = base.value;
+  if (!isStr(externalId)) return fail("corrupt", "listagem: campo externalId invalido");
+  const item: MatchListItem = {
+    ...summary.value,
+    externalId,
+    importedAt: base.value.importedAt as string,
+    updatedAt: base.value.updatedAt as string,
+  };
+  if (result !== undefined) {
+    const parsed = parse(MatchResult, result, "listagem: placar");
+    if (!parsed.ok) return parsed;
+    item.result = parsed.value;
+  }
+  return ok(item);
 }
 
 export function parseStoredVideo(v: unknown): Result<StoredVideo, StorageError> {
@@ -211,6 +233,20 @@ function parseStatus(v: unknown): Result<StorageStatus, StorageError> {
 
 const OUTCOMES: readonly SaveMatchOutcome[] = ["inserted", "unchanged", "updated"];
 
+type SaveInput = { match: Match; contractsVersion: string };
+
+function saveInput(match: Match): Result<SaveInput, StorageError> {
+  const valid = Match.safeParse(match);
+  if (!valid.success) return fail("invalid_data", `partida invalida: ${describeIssues(valid.error.issues)}`);
+  return ok({ match: valid.data, contractsVersion: CONTRACTS_VERSION });
+}
+
+function parseSaveResult(v: unknown): Result<{ id: string; outcome: SaveMatchOutcome }, StorageError> {
+  return isObj(v) && isStr(v.id) && OUTCOMES.includes(v.outcome as SaveMatchOutcome)
+    ? ok({ id: v.id, outcome: v.outcome as SaveMatchOutcome })
+    : fail("corrupt", "resposta de gravacao invalida");
+}
+
 export function createLocalStore(invoke: Invoke): LocalStore {
   async function call<T>(command: string, args: Record<string, unknown>, decode: (v: unknown) => Result<T, StorageError>) {
     let raw: unknown;
@@ -226,12 +262,20 @@ export function createLocalStore(invoke: Invoke): LocalStore {
     status: () => call("storage_status", {}, parseStatus),
 
     async saveMatch(match) {
-      const valid = Match.safeParse(match);
-      if (!valid.success) return fail("invalid_data", `partida invalida: ${describeIssues(valid.error.issues)}`);
-      return call("match_save", { input: { match: valid.data, contractsVersion: CONTRACTS_VERSION } }, (v) =>
-        isObj(v) && isStr(v.id) && OUTCOMES.includes(v.outcome as SaveMatchOutcome)
-          ? ok({ id: v.id, outcome: v.outcome as SaveMatchOutcome })
-          : fail("corrupt", "resposta de gravacao invalida"),
+      const input = saveInput(match);
+      if (!input.ok) return input;
+      return call("match_save", { input: input.value }, parseSaveResult);
+    },
+
+    async saveMatches(matches) {
+      const inputs: SaveInput[] = [];
+      for (const [i, match] of matches.entries()) {
+        const input = saveInput(match);
+        if (!input.ok) return fail(input.error.code, `item ${i + 1}: ${input.error.message}`);
+        inputs.push(input.value);
+      }
+      return call("match_save_batch", { inputs }, (v) =>
+        Array.isArray(v) && v.length === inputs.length ? parseList(v, parseSaveResult) : fail("corrupt", "resposta de gravacao invalida"),
       );
     },
 

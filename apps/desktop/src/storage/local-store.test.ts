@@ -166,3 +166,60 @@ describe("rodape de diagnostico", () => {
     expect(describeStorage({ kind: "ready", status: { available: false, supportedSchemaVersion: 1, error: { code: "corrupt", message: "x" } } })).toBe("banco indisponivel");
   });
 });
+
+describe("LocalStore: lote e listagem (P0-04)", () => {
+  const listRow = {
+    id: "m1",
+    externalId: "syn-0001",
+    game: "valorant",
+    origin: "synthetic",
+    map: "Ascent",
+    mode: "competitive",
+    startedAt: "2026-10-01T20:00:00.000Z",
+    durationSeconds: 420,
+    roundsPlayed: 3,
+    importedAt: NOW,
+    updatedAt: NOW,
+  };
+
+  it("saveMatches valida todas antes de chamar o lado nativo", async () => {
+    const calls: string[] = [];
+    const store = createLocalStore(async (command) => {
+      calls.push(command);
+      return [];
+    });
+    const bad = { ...normalized(syn0002, "m2"), durationSeconds: 0 } as Match;
+    const r = await store.saveMatches([normalized(syn0001, "m1"), bad]);
+    expect(r.ok || r.error).toMatchObject({ code: "invalid_data" });
+    expect(r.ok || r.error.message).toMatch(/^item 2: /);
+    expect(calls).toEqual([]);
+  });
+
+  it("saveMatches envia o lote e confere o tamanho da resposta", async () => {
+    let sent: unknown;
+    const reply: unknown[] = [{ id: "m1", outcome: "inserted" }, { id: "m2", outcome: "unchanged" }];
+    const store = createLocalStore(async (command, args) => {
+      sent = { command, count: (args?.inputs as unknown[]).length };
+      return reply;
+    });
+    const r = await store.saveMatches([normalized(syn0001, "m1"), normalized(syn0002, "m2")]);
+    expect(sent).toEqual({ command: "match_save_batch", count: 2 });
+    expect(r).toEqual({ ok: true, value: reply });
+    reply.pop();
+    const short = await store.saveMatches([normalized(syn0001, "m1"), normalized(syn0002, "m2")]);
+    expect(short.ok || short.error.code).toBe("corrupt");
+  });
+
+  it("listagem valida externalId e placar; placar ausente continua ausente", async () => {
+    const result = { score: { red: 2, blue: 1 }, winner: "red" };
+    const store = createLocalStore(async () => [listRow, { ...listRow, id: "m2", result }]);
+    const r = await store.listMatches();
+    expect(r.ok && r.value[0]).not.toHaveProperty("result");
+    expect(r.ok && r.value[1]?.result).toEqual(result);
+
+    const broken = createLocalStore(async () => [{ ...listRow, result: { winner: "ninguem" } }]);
+    expect((await broken.listMatches()).ok).toBe(false);
+    const noExternal = createLocalStore(async () => [{ ...listRow, externalId: "" }]);
+    expect((await noExternal.listMatches()).ok).toBe(false);
+  });
+});
