@@ -35,11 +35,12 @@ packages/config/              # tsconfig base strict
 packages/contracts/           # schemas Zod versionados
 packages/core/                # Result, ProviderError, portas
 packages/game-adapters/valorant/  # normalizador (hoje: formato sintetico)
+packages/analytics/           # Analytics Engine local (metricas, rounds, sessoes, padroes, evidencias)
 fixtures/valorant/            # dados sinteticos
-docs/{architecture,decisions,compliance,ux}/, docs/roadmap.md
+docs/{architecture,analytics,decisions,compliance,ux}/, docs/roadmap.md
 ```
 
-Pacotes internos sao TypeScript-fonte (sem build). Nao criar pacote vazio: `ui`, `analytics` e `coaching` nascem com P0-05, P0-08 e o design system.
+Pacotes internos sao TypeScript-fonte (sem build). Nao criar pacote vazio: `ui` e `coaching` nascem com o design system e o P0-08.
 
 ## Comandos
 
@@ -77,7 +78,7 @@ Detalhes em [docs/roadmap.md](docs/roadmap.md).
 - [x] P0-02 Contratos e dominio: contratos 1.1.0, adaptador sintetico com testes negativos e desktop consumindo os pacotes; ver docs/architecture/p0-02-aceite.md e ADR 0003
 - [x] P0-03 SQLite: banco em `%LOCALAPPDATA%\gg.cyl.sense\data`, schema v1, migracoes versionadas, partidas idempotentes, videos e marcacoes; ver docs/architecture/p0-03-aceite.md, local-persistence.md e ADR 0004
 - [x] P0-04 Importacao: dialogo nativo aberto pelo Rust, formatos `cyl-synthetic-valorant` v1 e `cyl-local-bundle` v1, lote atomico, historico e detalhe; ver docs/architecture/p0-04-aceite.md, match-import.md e ADR 0005
-- [ ] P0-05 Analytics Engine
+- [x] P0-05 Analytics Engine: `@cyl/analytics` deterministico e offline (metricas com disponibilidade explicita, rounds, sessoes ponderadas, 3 padroes com amostra minima, evidencias validadas, entrada do Coach), previa no detalhe da partida; ver docs/architecture/p0-05-aceite.md, analytics-engine.md, docs/analytics/ e ADR 0006
 - [ ] P0-06 Dashboard
 - [ ] P0-07 Video manual
 - [ ] P0-08 Coaching local

@@ -108,6 +108,7 @@ Checagem do lado Rust: `cd apps/desktop/src-tauri && cargo check` (testes da per
 - [CLAUDE.md](CLAUDE.md): guia e regras do projeto
 - [docs/roadmap.md](docs/roadmap.md): roadmap e status
 - [docs/architecture/](docs/architecture/): arquitetura, API e criterios de aceite
+- [docs/analytics/](docs/analytics/): formulas das metricas e regras dos padroes
 - [docs/decisions/](docs/decisions/): decisoes (ADRs)
 - [docs/ux/](docs/ux/): jornadas, navegacao, fluxos e especificacoes de tela
 - [docs/compliance/](docs/compliance/): Riot e dados pessoais
@@ -120,6 +121,7 @@ Checagem do lado Rust: `cd apps/desktop/src-tauri && cargo check` (testes da per
 - P0-02 (contratos e dominio): concluido ([aceite](docs/architecture/p0-02-aceite.md)).
 - P0-03 (SQLite local, migracoes e repositorios): concluido ([aceite](docs/architecture/p0-03-aceite.md), [persistencia local](docs/architecture/local-persistence.md)).
 - P0-04 (importacao de partidas e historico local): concluido ([aceite](docs/architecture/p0-04-aceite.md), [importacao](docs/architecture/match-import.md)).
-- Proximo: P0-05 (Analytics Engine). Backlog completo em [docs/roadmap.md](docs/roadmap.md).
+- P0-05 (Analytics Engine): concluido ([aceite](docs/architecture/p0-05-aceite.md), [motor](docs/architecture/analytics-engine.md), [metricas](docs/analytics/metrics-catalog.md), [padroes](docs/analytics/pattern-rules.md)).
+- Proximo: P0-06 (Dashboard). Backlog completo em [docs/roadmap.md](docs/roadmap.md).
 
 CYL Sense nao e afiliado a Riot Games.
