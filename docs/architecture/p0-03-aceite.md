@@ -83,8 +83,11 @@ Logs: somente as linhas `[cyl-storage]` acima (sem caminhos, sem conteudo de par
 
 ## Pendencias
 
-- Recuperacao de banco corrompido e manual (arquivo preservado); exportacao (`export_copy`) sem comando/UI.
+- **Instalacao do NSIS**: o instalador `CYL Sense_0.1.0_x64-setup.exe` foi gerado, mas nao instalado nem testado (instalar, abrir pelo atalho, reabrir, desinstalar e conferir que o banco em `%LOCALAPPDATA%\gg.cyl.sense\data` nao e removido sem aviso). Responsavel: P0-09.
+- **Backup**: o backup automatico antes de migrar (`VACUUM INTO`) so e exercitado pelos testes, porque existe apenas a migracao 1; nao ha rotacao/limpeza dos `.bak` nem exportacao pelo usuario (`export_copy` existe no Rust, sem comando nem UI).
+- **Recuperacao**: banco corrompido e detectado e preservado, mas a recuperacao e manual (mover o arquivo e reabrir o app para criar um novo); falta fluxo guiado (quarentena + restauracao de backup) na UI.
 - Sem exclusao de partidas/videos (sem fluxo que peca; FKs `RESTRICT`).
+- `.gitignore` passou a cobrir tambem `-wal`, `-shm`, `-journal` e `*.bak` (antes so `*.db`, `*.sqlite`, `*.sqlite3`).
 - Banco vazio criado pelo passo 8 permanece em `%LOCALAPPDATA%\gg.cyl.sense\data` (estado normal do primeiro uso do app).
 
 ## Proximo passo

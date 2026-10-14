@@ -15,6 +15,17 @@ apps/desktop/src-tauri/target/
 *.sqlite
 *.sqlite3
 *.db
+# Arquivos auxiliares do SQLite (WAL, memoria compartilhada, journal) e backups pre-migracao
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal
+*.sqlite3-wal
+*.sqlite3-shm
+*.sqlite3-journal
+*.bak
 
 # Next.js (apps/web)
 .next/
