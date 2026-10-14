@@ -94,8 +94,9 @@ Correspondencia com os contratos: `video_references` -> `VideoReference` (+ `loc
 |---|---|---|
 | `storage_status` | versao do schema, contagens, erro de abertura | nunca falha |
 | `match_save` | grava `Match` | ver idempotencia |
+| `match_save_batch` | grava varias `Match` numa unica transacao (P0-04) | mesmas regras de `match_save`; 1..200 itens; identidade repetida no lote recusada; qualquer erro desfaz o lote; mensagem prefixada com `item N:` |
 | `match_get` | partida por id local | revalida identidade do JSON lido; divergencia => `corrupt` |
-| `match_list` | resumo (`MatchSummary` + datas), mais recentes primeiro | `limit` 1..500 |
+| `match_list` | resumo (`MatchSummary` + `externalId`, `result` quando gravado, datas), mais recentes primeiro | `limit` 1..500 |
 | `video_attach` | associa MP4 a uma partida (ou a nenhuma) | partida deve existir; idempotente por (`match_id`, caminho) |
 | `video_list` | videos de uma partida | partida inexistente => `not_found` |
 | `marker_add` / `marker_update` | cria / substitui campos editaveis | video existe; `0 <= timestamp <= duracao`; round so com partida e dentro dos rounds |

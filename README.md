@@ -119,6 +119,7 @@ Checagem do lado Rust: `cd apps/desktop/src-tauri && cargo check` (testes da per
 - v0.2 (fundacao Web/Desktop/API): concluida ([estado e migracao](docs/architecture/v0.2-estado-e-migracao.md)).
 - P0-02 (contratos e dominio): concluido ([aceite](docs/architecture/p0-02-aceite.md)).
 - P0-03 (SQLite local, migracoes e repositorios): concluido ([aceite](docs/architecture/p0-03-aceite.md), [persistencia local](docs/architecture/local-persistence.md)).
-- Proximo: P0-04 (importacao de partidas). Backlog completo em [docs/roadmap.md](docs/roadmap.md).
+- P0-04 (importacao de partidas e historico local): concluido ([aceite](docs/architecture/p0-04-aceite.md), [importacao](docs/architecture/match-import.md)).
+- Proximo: P0-05 (Analytics Engine). Backlog completo em [docs/roadmap.md](docs/roadmap.md).
 
 CYL Sense nao e afiliado a Riot Games.

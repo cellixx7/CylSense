@@ -76,7 +76,7 @@ Detalhes em [docs/roadmap.md](docs/roadmap.md).
 - [x] v0.2 Fundacao Web/Desktop/API (ver docs/architecture/v0.2-estado-e-migracao.md)
 - [x] P0-02 Contratos e dominio: contratos 1.1.0, adaptador sintetico com testes negativos e desktop consumindo os pacotes; ver docs/architecture/p0-02-aceite.md e ADR 0003
 - [x] P0-03 SQLite: banco em `%LOCALAPPDATA%\gg.cyl.sense\data`, schema v1, migracoes versionadas, partidas idempotentes, videos e marcacoes; ver docs/architecture/p0-03-aceite.md, local-persistence.md e ADR 0004
-- [ ] P0-04 Importacao
+- [x] P0-04 Importacao: dialogo nativo aberto pelo Rust, formatos `cyl-synthetic-valorant` v1 e `cyl-local-bundle` v1, lote atomico, historico e detalhe; ver docs/architecture/p0-04-aceite.md, match-import.md e ADR 0005
 - [ ] P0-05 Analytics Engine
 - [ ] P0-06 Dashboard
 - [ ] P0-07 Video manual
