@@ -18,6 +18,13 @@ impl StorageState {
         Self(Mutex::new(storage))
     }
 
+    /// Consolida o WAL ao sair; falha aqui nao perde dados (o WAL e recuperado).
+    pub fn checkpoint(&self) {
+        if let Err(e) = self.with(|s| s.checkpoint()) {
+            eprintln!("[cyl-storage] aviso ao fechar: {e}");
+        }
+    }
+
     fn with<T>(&self, op: impl FnOnce(&mut Storage) -> StorageResult<T>) -> StorageResult<T> {
         let mut guard = self.0.lock().map_err(|_| {
             StorageError::new(

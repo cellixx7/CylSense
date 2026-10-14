@@ -126,6 +126,21 @@ fn dados_persistem_apos_reabrir() {
 }
 
 #[test]
+fn checkpoint_consolida_o_wal_no_arquivo_principal() {
+    let (_dir, path) = temp_db();
+    let mut s = Storage::open(&path).unwrap();
+    save(&mut s, sample_match("m1", "syn-0001")).unwrap();
+    s.checkpoint().unwrap();
+    let wal = path.with_extension("db-wal");
+    assert_eq!(
+        fs::metadata(&wal).map(|m| m.len()).unwrap_or(0),
+        0,
+        "WAL truncado"
+    );
+    assert!(fs::metadata(&path).unwrap().len() > 4096);
+}
+
+#[test]
 fn migracoes_nao_sao_reaplicadas() {
     let (_dir, path) = temp_db();
     drop(Storage::open(&path).unwrap());

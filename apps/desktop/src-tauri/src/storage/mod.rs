@@ -162,6 +162,13 @@ impl Storage {
             .map_err(sql("falha ao ler metadados"))
     }
 
+    /// Move o conteudo do WAL para o arquivo principal (chamado ao fechar o app).
+    pub fn checkpoint(&self) -> StorageResult<()> {
+        self.conn
+            .query_row("PRAGMA wal_checkpoint(TRUNCATE)", [], |_| Ok(()))
+            .map_err(sql("falha ao consolidar o banco"))
+    }
+
     /// Exporta uma copia consistente do banco (`VACUUM INTO`). O destino nao pode existir.
     pub fn export_copy(&self, dest: &Path) -> StorageResult<()> {
         if dest.exists() {

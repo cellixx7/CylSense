@@ -96,8 +96,15 @@ pub fn run() {
             commands::marker_update,
             commands::marker_delete,
         ])
-        .run(tauri::generate_context!())
-        .expect("erro ao iniciar o CYL Sense");
+        .build(tauri::generate_context!())
+        .expect("erro ao iniciar o CYL Sense")
+        .run(|app, event| {
+            if let tauri::RunEvent::Exit = event {
+                if let Some(state) = app.try_state::<StorageState>() {
+                    state.checkpoint();
+                }
+            }
+        });
 }
 
 #[cfg(test)]
