@@ -4,7 +4,7 @@ import { normalizeSyntheticMatch } from "@/domain/synthetic";
 import type { LocalStore, SaveMatchOutcome } from "./local-store";
 
 /** Caminho ficticio: so a referencia e gravada; nenhum arquivo e lido. */
-export const DEV_SEED_VIDEO_PATH = "C:\CYL-Sense-dev\synthetic-demo.mp4";
+export const DEV_SEED_VIDEO_PATH = "C:\\CYL-Sense-dev\\synthetic-demo.mp4";
 
 export interface DevSeedReport {
   matches: { externalId: string; id: string; outcome: SaveMatchOutcome }[];

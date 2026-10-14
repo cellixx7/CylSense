@@ -2,7 +2,7 @@ import { CONTRACTS_VERSION, type Match } from "@cyl/contracts";
 import syn0001 from "../../../../fixtures/valorant/syn-0001.json";
 import syn0002 from "../../../../fixtures/valorant/syn-0002.json";
 import { normalizeSyntheticMatch } from "@/domain/synthetic";
-import { seedSyntheticData } from "./dev-seed";
+import { DEV_SEED_VIDEO_PATH, seedSyntheticData } from "./dev-seed";
 import { createLocalStore, toStorageError, type Invoke } from "./local-store";
 import { describeStorage } from "./useStorageStatus";
 
@@ -136,6 +136,10 @@ describe("LocalStore (ponte com o SQLite nativo)", () => {
 });
 
 describe("semente sintetica de desenvolvimento", () => {
+  it("usa um caminho absoluto do Windows (o Rust recusa caminho relativo)", () => {
+    expect(DEV_SEED_VIDEO_PATH).toBe(["C:", "CYL-Sense-dev", "synthetic-demo.mp4"].join("\\"));
+  });
+
   it("grava fixtures, video e marcacao, e e idempotente", async () => {
     const native = fakeNative();
     const store = createLocalStore(native.invoke);
