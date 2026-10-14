@@ -65,6 +65,19 @@ Pacote novo `@cyl/analytics` (depende so de `@cyl/contracts` e `@cyl/core`). Nen
 - A janela Tauri (`pnpm dev`) nao foi aberta neste passo: a secao nova e coberta pelos testes de componente com o `LocalStore` em memoria e pelo `build:web`; o caminho nativo (Rust/SQLite) nao mudou desde o P0-04.
 - Instalador NSIS (pendencia herdada do P0-04, P0-09).
 
+## Revisao externa (pos-implementacao)
+
+Itens de uma auditoria independente, verificados e corrigidos no motor (contratos inalterados; decisao em [analytics-engine.md](analytics-engine.md#validacao-de-evidencias-por-que-no-motor)):
+
+| Item | Situacao |
+|---|---|
+| Evidencia `metric` nao verificada por `checkFindingInContext` | Ja coberta pelo `checkEvidence` do motor (existencia no catalogo, metrica do jogador analisado, disponivel, valor igual). Adicionados testes: chave so de sessao e metrica de eventos em partida parcial recusadas |
+| `sampleSize` so limitado em `matches` | **Corrigido**: `rounds` e `events` limitados as rodadas e eventos registrados das partidas analisadas; testes no limite e acima dele |
+| Contadores x eventos e cobertura parcial | Confirmado e testado: contadores valem com cobertura parcial (inclusive acima dos eventos); `eventCoverage` ausente e tratado como parcial; metricas de eventos so com cobertura completa; na sessao, partida parcial entra nos totais e fica fora das razoes de abertura |
+| HS% por `headshotKills` | Confirmado: rotulo "Abates com headshot / abates", formula e limitacao dizem que nao e o HS% por disparos; testado |
+
+Testes do analytics apos a revisao: **115** (eram 106); total do monorepo: **247**.
+
 ## Pendencias
 
 - Painel/relatorios com as metricas de sessao e padroes (P0-06), incluindo escolha do jogador por partida (ou vinculo de conta) para montar sessoes na UI.

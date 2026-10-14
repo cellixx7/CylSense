@@ -38,6 +38,17 @@ LocalStore (SQLite via Rust) --Match validado--> apps/desktop/src/analytics/anal
 - **Dados incompletos**: ausente -> `unavailable` com motivo; cobertura parcial nunca e tratada como "nao aconteceu".
 - **Evidencias**: toda evidencia emitida e validada antes de sair (`checkFinding`); falha = excecao (bug do motor), convertida em erro tipado pela camada do desktop.
 
+## Validacao de evidencias: por que no motor
+
+`checkFindingInContext` (contratos) confere partida, evento, rodada e video, mas nao pode conferir evidencias `kind: "metric"`: os contratos nao conhecem o catalogo nem os valores calculados, e importar o motor de dentro dos contratos criaria dependencia circular. Por isso a validacao completa fica em `@cyl/analytics` (`checkEvidence`/`checkFinding`), sem mudar o contrato:
+
+- **Existencia**: a chave precisa estar no catalogo por partida (chaves so de sessao, como `first_death_ratio`, sao recusadas como evidencia de partida).
+- **Identidade**: a metrica e a do jogador analisado naquela partida (`EvidenceIndex` guarda uma `MatchAnalysis` por partida da sessao) e precisa estar disponivel; metrica que depende de eventos em partida com cobertura parcial e recusada.
+- **Valor**: igual ao calculado (tolerancia de ponto flutuante).
+- **`sampleSize`**: limitado a populacao analisada em cada unidade: `matches` = partidas da sessao; `rounds` = soma das rodadas registradas; `events` = soma dos eventos registrados (com cobertura parcial o teto e o que foi registrado; nada nao observado e presumido).
+
+Todo Finding emitido pelo motor passa por essas regras e tambem por `checkFindingInContext` (testado).
+
 ## Integracao com o desktop
 
 `apps/desktop/src/analytics/analytics-service.ts`:
