@@ -7,7 +7,9 @@ import {
   type AuthStatusResponse,
   type GameAccount,
   type HealthResponse,
+  LoginRequest,
   type MatchListResponse,
+  RegisterRequest,
   type MeResponse,
   type SyncResponse,
 } from "@cyl/contracts";
@@ -22,7 +24,7 @@ import {
 import Fastify, { type FastifyReply, type FastifyRequest, type FastifyServerOptions } from "fastify";
 import { z } from "zod";
 import type { ApiConfig } from "./config";
-import { createPkcePair, randomToken, safeEqual } from "./security";
+import { createPkcePair, hashPassword, randomToken, safeEqual, verifyPassword } from "./security";
 import { MemoryStore } from "./store";
 
 export const SESSION_COOKIE = "cyl_session";
@@ -129,9 +131,54 @@ export function buildApp(deps: AppDeps) {
     return sessionId ? store.getSession(sessionId, now())?.userId : undefined;
   }
 
+  /** `persistent: false` gera cookie de sessao do navegador (some ao fechar). */
+  function startSession(reply: FastifyReply, userId: string, persistent: boolean) {
+    const sessionId = randomToken();
+    store.createSession(sessionId, { userId, expiresAt: now() + SESSION_TTL_MS });
+    reply.setCookie(SESSION_COOKIE, sessionId, persistent ? { ...cookieBase, maxAge: SESSION_TTL_MS / 1000 } : cookieBase);
+  }
+
+  function meOf(userId: string): MeResponse | undefined {
+    const user = store.getUser(userId);
+    return user ? { user, gameAccounts: store.listAccounts(userId) } : undefined;
+  }
+
+  // Hash de referencia para e-mails inexistentes: o login leva o mesmo tempo
+  // com ou sem conta, sem revelar quais e-mails estao cadastrados.
+  let decoyHash: Promise<string> | undefined;
+  const decoy = () => (decoyHash ??= hashPassword(randomToken()));
+
   app.get("/v1/health", async () => {
     const body: HealthResponse = { status: "ok", contractsVersion: CONTRACTS_VERSION };
     return body;
+  });
+
+  app.post("/v1/auth/register", async (req, reply) => {
+    const body = RegisterRequest.safeParse(req.body);
+    if (!body.success) return sendError(reply, 400, "invalid_request", "dados de cadastro invalidos");
+    const { displayName, email, password } = body.data;
+    if (store.findCredential(email)) return sendError(reply, 409, "conflict", "e-mail ja cadastrado");
+
+    const passwordHash = await hashPassword(password);
+    // Outro cadastro com o mesmo e-mail pode ter terminado durante o hash.
+    if (store.findCredential(email)) return sendError(reply, 409, "conflict", "e-mail ja cadastrado");
+
+    const userId = newId();
+    store.saveUser({ id: userId, displayName, createdAt: isoNow() });
+    store.saveCredential(email, { userId, passwordHash });
+    startSession(reply, userId, true);
+    return reply.status(201).send(meOf(userId));
+  });
+
+  app.post("/v1/auth/login", async (req, reply) => {
+    const body = LoginRequest.safeParse(req.body);
+    if (!body.success) return sendError(reply, 400, "invalid_request", "dados de login invalidos");
+    const credential = store.findCredential(body.data.email);
+    const valid = await verifyPassword(body.data.password, credential?.passwordHash ?? (await decoy()));
+    if (!credential || !valid) return sendError(reply, 401, "unauthorized", "e-mail ou senha incorretos");
+
+    startSession(reply, credential.userId, body.data.remember === true);
+    return meOf(credential.userId);
   });
 
   app.get("/v1/auth/riot/status", async () => {
@@ -153,9 +200,11 @@ export function buildApp(deps: AppDeps) {
   });
 
   app.get("/v1/auth/riot/callback", async (req, reply) => {
+    // Com sessao ativa (conta propria), o login Riot apenas vincula a conta.
+    const sessionUser = sessionUserId(req);
     const fail = (reason: string) => {
       reply.clearCookie(STATE_COOKIE, { path: "/" });
-      return reply.redirect(`${config.webOrigin}/entrar?erro=${reason}`);
+      return reply.redirect(`${config.webOrigin}${sessionUser ? "/vincular" : "/entrar"}?erro=${reason}`);
     };
 
     const query = CallbackQuery.safeParse(req.query);
@@ -177,7 +226,8 @@ export function buildApp(deps: AppDeps) {
 
     const { identity, grant } = result.value;
     const existing = store.findAccountByExternalId(identity.provider, identity.externalId);
-    let userId = existing?.userId;
+    if (sessionUser && existing && existing.userId !== sessionUser) return fail("already_linked");
+    let userId = sessionUser ?? existing?.userId;
     if (userId === undefined) {
       userId = newId();
       store.saveUser({ id: userId, displayName: identity.gameName, createdAt: isoNow() });
@@ -195,10 +245,9 @@ export function buildApp(deps: AppDeps) {
     };
     store.saveAccount(account, identity, grant);
 
-    const sessionId = randomToken();
-    store.createSession(sessionId, { userId, expiresAt: now() + SESSION_TTL_MS });
     reply.clearCookie(STATE_COOKIE, { path: "/" });
-    reply.setCookie(SESSION_COOKIE, sessionId, { ...cookieBase, maxAge: SESSION_TTL_MS / 1000 });
+    if (sessionUser) return reply.redirect(`${config.webOrigin}/painel?vinculada=1`);
+    startSession(reply, userId, true);
     return reply.redirect(`${config.webOrigin}/partidas`);
   });
 
@@ -211,9 +260,8 @@ export function buildApp(deps: AppDeps) {
 
   app.get("/v1/me", async (req, reply) => {
     const userId = sessionUserId(req);
-    const user = userId ? store.getUser(userId) : undefined;
-    if (!userId || !user) return sendError(reply, 401, "unauthorized", "sessao ausente ou expirada");
-    const body: MeResponse = { user, gameAccounts: store.listAccounts(userId) };
+    const body = userId ? meOf(userId) : undefined;
+    if (!body) return sendError(reply, 401, "unauthorized", "sessao ausente ou expirada");
     return body;
   });
 

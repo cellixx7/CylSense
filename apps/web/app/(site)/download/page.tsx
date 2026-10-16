@@ -4,7 +4,7 @@ export const metadata: Metadata = { title: "Desktop" };
 
 export default function DownloadPage() {
   return (
-    <div className="max-w-2xl space-y-6">
+    <main className="mx-auto max-w-2xl space-y-6 px-6 py-12">
       <h1 className="text-2xl font-semibold tracking-tight">CYL Sense Desktop</h1>
       <p className="text-muted">
         O aplicativo para Windows e onde a analise se aprofunda: historico local, revisao de video importado
@@ -18,6 +18,6 @@ export default function DownloadPage() {
       <p className="rounded-cyl border border-border bg-surface p-4 text-sm">
         Download ainda indisponivel: o instalador sera publicado quando houver uma versao estavel.
       </p>
-    </div>
+    </main>
   );
 }

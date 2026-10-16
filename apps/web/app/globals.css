@@ -1,30 +1,48 @@
 @import "tailwindcss";
 
 /*
- * Tokens PROVISORIOS. Os nomes sao o contrato com o futuro design system
- * (Figma); os valores serao substituidos. Ver docs/ux/screen-specifications.md.
+ * Tokens do site. Os nomes sao o contrato (docs/ux/screen-specifications.md);
+ * os valores seguem a identidade do desktop (violeta sobre grafite, oklch).
  */
 :root {
-  --cyl-bg: #0e0f11;
-  --cyl-surface: #16181b;
-  --cyl-border: #2a2d32;
-  --cyl-text: #e8e9eb;
-  --cyl-text-muted: #9a9ea6;
-  --cyl-accent: #e0b84c;
-  --cyl-warning: #d9822b;
-  --cyl-danger: #d4524a;
-  --cyl-radius: 4px;
+  --cyl-bg: oklch(0.16 0.01 270);
+  --cyl-surface: oklch(0.2 0.012 270);
+  --cyl-subtle: oklch(0.24 0.012 270);
+  --cyl-border: oklch(0.3 0.015 270);
+  --cyl-input: oklch(0.42 0.02 270);
+  --cyl-text: oklch(0.96 0.005 270);
+  --cyl-text-muted: oklch(0.7 0.02 270);
+  --cyl-accent: oklch(0.68 0.19 290);
+  --cyl-on-accent: oklch(0.15 0.01 270);
+  --cyl-accent-soft: oklch(0.28 0.05 290);
+  --cyl-on-accent-soft: oklch(0.92 0.03 290);
+  --cyl-up: oklch(0.78 0.15 155);
+  --cyl-down: oklch(0.72 0.16 25);
+  --cyl-warning: oklch(0.78 0.14 70);
+  --cyl-danger: oklch(0.7 0.17 25);
+  --cyl-skeleton: oklch(0.26 0.012 270);
+  --cyl-placeholder: oklch(0.23 0.02 280);
+  --cyl-placeholder-alt: oklch(0.26 0.03 285);
+  --cyl-radius: 8px;
 }
 
 @theme inline {
   --color-bg: var(--cyl-bg);
   --color-surface: var(--cyl-surface);
+  --color-subtle: var(--cyl-subtle);
   --color-border: var(--cyl-border);
+  --color-input: var(--cyl-input);
   --color-text: var(--cyl-text);
   --color-muted: var(--cyl-text-muted);
   --color-accent: var(--cyl-accent);
+  --color-on-accent: var(--cyl-on-accent);
+  --color-accent-soft: var(--cyl-accent-soft);
+  --color-on-accent-soft: var(--cyl-on-accent-soft);
+  --color-up: var(--cyl-up);
+  --color-down: var(--cyl-down);
   --color-warning: var(--cyl-warning);
   --color-danger: var(--cyl-danger);
+  --color-skeleton: var(--cyl-skeleton);
   --radius-cyl: var(--cyl-radius);
 }
 
@@ -32,4 +50,40 @@ html,
 body {
   background: var(--cyl-bg);
   color: var(--cyl-text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--cyl-accent);
+  outline-offset: 2px;
+}
+
+/* Em @layer components para que utilitarios (rounded-*, size-*) possam sobrescrever. */
+@layer components {
+  /* Carregamento sempre como esqueleto da pagina, nunca spinner ou barra. */
+  .cyl-skeleton {
+    background: var(--cyl-skeleton);
+    border-radius: 6px;
+    animation: cyl-pulse 1.4s ease-in-out infinite;
+  }
+
+  /* Espaco reservado para arte oficial (agentes, patentes, mapas) ainda nao licenciada. */
+  .cyl-placeholder {
+    background: repeating-linear-gradient(
+      135deg,
+      var(--cyl-placeholder) 0 14px,
+      var(--cyl-placeholder-alt) 14px 28px
+    );
+  }
+}
+
+@keyframes cyl-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cyl-skeleton {
+    animation: none;
+  }
 }

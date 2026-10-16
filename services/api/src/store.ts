@@ -6,6 +6,12 @@ export interface PendingLogin {
   expiresAt: number;
 }
 
+export interface Credential {
+  userId: string;
+  /** Formato `scrypt$sal$chave`; nunca a senha. */
+  passwordHash: string;
+}
+
 export interface Session {
   userId: string;
   expiresAt: number;
@@ -22,6 +28,8 @@ export class MemoryStore {
   /** Credenciais do provedor: somente servidor, nunca serializadas em respostas. */
   private readonly grants = new Map<string, { identity: ExternalIdentity; grant: ProviderGrant }>();
   private readonly sessions = new Map<string, Session>();
+  /** Login por e-mail e senha, indexado pelo e-mail normalizado. */
+  private readonly credentials = new Map<string, Credential>();
   private readonly pending = new Map<string, PendingLogin>();
   /** Partidas por conta vinculada, indexadas por externalId (sincronizacao idempotente). */
   private readonly matches = new Map<string, Map<string, Match>>();
@@ -42,6 +50,14 @@ export class MemoryStore {
       if (account.provider === provider && account.externalId === externalId) return account;
     }
     return undefined;
+  }
+
+  findCredential(email: string): Credential | undefined {
+    return this.credentials.get(email);
+  }
+
+  saveCredential(email: string, credential: Credential): void {
+    this.credentials.set(email, credential);
   }
 
   saveUser(user: User): void {

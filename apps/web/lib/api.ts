@@ -5,6 +5,8 @@ import {
   MeResponse,
   SyncResponse,
   type ApiErrorCode,
+  type LoginRequest,
+  type RegisterRequest,
 } from "@cyl/contracts";
 import type { z } from "zod";
 
@@ -14,6 +16,7 @@ export type ApiResult<T> =
 
 /** Cabecalho anti-CSRF exigido pela API em requisicoes de escrita. */
 const WRITE_HEADERS = { "x-cyl-request": "1" };
+const JSON_WRITE_HEADERS = { ...WRITE_HEADERS, "content-type": "application/json" };
 
 /**
  * Cliente da CYL Sense API para o navegador. Toda resposta e validada com os
@@ -48,9 +51,18 @@ export function createApiClient(fetchImpl: typeof fetch = fetch, base = "/api") 
     me: () => request("/v1/me", MeResponse),
     matches: () => request("/v1/me/matches", MatchListResponse),
     sync: () => request("/v1/me/sync", SyncResponse, { method: "POST", headers: WRITE_HEADERS }),
+    register: (body: RegisterRequest) =>
+      request("/v1/auth/register", MeResponse, { method: "POST", headers: JSON_WRITE_HEADERS, body: JSON.stringify(body) }),
+    login: (body: LoginRequest) =>
+      request("/v1/auth/login", MeResponse, { method: "POST", headers: JSON_WRITE_HEADERS, body: JSON.stringify(body) }),
+    unlinkAccount: (accountId: string) =>
+      request(`/v1/me/game-accounts/${encodeURIComponent(accountId)}`, null, { method: "DELETE", headers: WRITE_HEADERS }),
     logout: () => request("/v1/auth/logout", null, { method: "POST", headers: WRITE_HEADERS }),
-    /** Navegacao (nao fetch): o fluxo OAuth precisa de redirects de pagina inteira. */
-    loginUrl: `${base}/v1/auth/riot/start`,
+    /**
+     * Navegacao (nao fetch): o fluxo OAuth precisa de redirects de pagina inteira.
+     * Com sessao ativa, o retorno vincula a conta Riot ao perfil.
+     */
+    riotLinkUrl: `${base}/v1/auth/riot/start`,
   };
 }
 

@@ -254,3 +254,93 @@ describe("logs", () => {
     expect(output).not.toContain("mock-token");
   });
 });
+
+describe("conta propria (e-mail e senha)", () => {
+  const signup = { displayName: "Jogador", email: "Jogador@Exemplo.com ", password: "senha-forte-123", acceptTerms: true };
+
+  async function register(app: ReturnType<typeof mockApp>) {
+    const res = await app.inject({ method: "POST", url: "/v1/auth/register", headers: WRITE, payload: signup });
+    expect(res.statusCode).toBe(201);
+    return { res, session: cookieFrom(res, SESSION_COOKIE) };
+  }
+
+  it("cadastra, abre sessao sem conta Riot e recusa e-mail repetido", async () => {
+    const app = mockApp();
+    const { res, session } = await register(app);
+    const body = MeResponse.parse(res.json());
+    expect(body.user.displayName).toBe("Jogador");
+    expect(body.gameAccounts).toEqual([]);
+    expect(res.body).not.toContain("senha-forte-123");
+
+    const me = await app.inject({ method: "GET", url: "/v1/me", cookies: { [SESSION_COOKIE]: session } });
+    expect(me.statusCode).toBe(200);
+
+    const again = await app.inject({ method: "POST", url: "/v1/auth/register", headers: WRITE, payload: { ...signup, email: "jogador@exemplo.com" } });
+    expect(again.statusCode).toBe(409);
+    expect(again.json()).toMatchObject({ error: { code: "conflict" } });
+  });
+
+  it("valida o cadastro", async () => {
+    const app = mockApp();
+    for (const payload of [
+      { ...signup, password: "curta" },
+      { ...signup, email: "nao-e-email" },
+      { ...signup, acceptTerms: false },
+      { ...signup, displayName: " " },
+    ]) {
+      const res = await app.inject({ method: "POST", url: "/v1/auth/register", headers: WRITE, payload });
+      expect(res.statusCode).toBe(400);
+    }
+  });
+
+  it("faz login com e-mail normalizado e responde igual para e-mail inexistente e senha errada", async () => {
+    const app = mockApp();
+    await register(app);
+
+    const ok = await app.inject({ method: "POST", url: "/v1/auth/login", headers: WRITE, payload: { email: "jogador@exemplo.com", password: signup.password, remember: true } });
+    expect(ok.statusCode).toBe(200);
+    expect(ok.cookies.find((c) => c.name === SESSION_COOKIE)?.maxAge).toBeGreaterThan(0);
+
+    const temp = await app.inject({ method: "POST", url: "/v1/auth/login", headers: WRITE, payload: { email: "jogador@exemplo.com", password: signup.password } });
+    expect(temp.cookies.find((c) => c.name === SESSION_COOKIE)?.maxAge).toBeUndefined();
+
+    const wrong = await app.inject({ method: "POST", url: "/v1/auth/login", headers: WRITE, payload: { email: "jogador@exemplo.com", password: "outra-senha" } });
+    const unknown = await app.inject({ method: "POST", url: "/v1/auth/login", headers: WRITE, payload: { email: "ninguem@exemplo.com", password: "outra-senha" } });
+    expect(wrong.statusCode).toBe(401);
+    expect(unknown.statusCode).toBe(401);
+    expect(wrong.json()).toEqual(unknown.json());
+  });
+
+  it("vincula a conta Riot ao perfil logado e devolve ao painel", async () => {
+    const app = mockApp();
+    const { session } = await register(app);
+
+    const start = await app.inject({ method: "GET", url: "/v1/auth/riot/start", cookies: { [SESSION_COOKIE]: session } });
+    const state = new URL(start.headers.location as string).searchParams.get("state")!;
+    const cb = await app.inject({
+      method: "GET",
+      url: `/v1/auth/riot/callback?code=mock-alpha&state=${state}`,
+      cookies: { [STATE_COOKIE]: state, [SESSION_COOKIE]: session },
+    });
+    expect(cb.headers.location).toBe("http://localhost:3000/painel?vinculada=1");
+
+    const me = MeResponse.parse((await app.inject({ method: "GET", url: "/v1/me", cookies: { [SESSION_COOKIE]: session } })).json());
+    expect(me.user.displayName).toBe("Jogador");
+    expect(me.gameAccounts).toHaveLength(1);
+  });
+
+  it("recusa vincular uma conta Riot que ja pertence a outro perfil", async () => {
+    const app = mockApp();
+    await login(app); // Synth Alpha ja vinculada a outro usuario
+    const { session } = await register(app);
+
+    const start = await app.inject({ method: "GET", url: "/v1/auth/riot/start", cookies: { [SESSION_COOKIE]: session } });
+    const state = new URL(start.headers.location as string).searchParams.get("state")!;
+    const cb = await app.inject({
+      method: "GET",
+      url: `/v1/auth/riot/callback?code=mock-alpha&state=${state}`,
+      cookies: { [STATE_COOKIE]: state, [SESSION_COOKIE]: session },
+    });
+    expect(cb.headers.location).toBe("http://localhost:3000/vincular?erro=already_linked");
+  });
+});
