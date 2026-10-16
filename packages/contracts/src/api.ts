@@ -11,6 +11,7 @@ export const ApiErrorCode = z.enum([
   "invalid_request",
   "invalid_state",
   "not_found",
+  "conflict",
   "rate_limited",
   "upstream_unavailable",
   "internal",
@@ -40,6 +41,25 @@ export const AuthStatusResponse = z.object({
   mode: AuthMode,
 });
 export type AuthStatusResponse = z.infer<typeof AuthStatusResponse>;
+
+/** E-mail normalizado (sem espacos, minusculo) antes da validacao. */
+export const Email = z.string().trim().toLowerCase().pipe(z.email().max(254));
+
+/** Conta propria do CYL Sense; a conta Riot e vinculada depois, opcionalmente. */
+export const RegisterRequest = z.object({
+  displayName: z.string().trim().min(2).max(32),
+  email: Email,
+  password: z.string().min(8).max(128),
+  acceptTerms: z.literal(true),
+});
+export type RegisterRequest = z.infer<typeof RegisterRequest>;
+
+export const LoginRequest = z.object({
+  email: Email,
+  password: z.string().min(1).max(128),
+  remember: z.boolean().optional(),
+});
+export type LoginRequest = z.infer<typeof LoginRequest>;
 
 export const MeResponse = z.object({
   user: User,

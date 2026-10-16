@@ -41,4 +41,18 @@ describe("createApiClient", () => {
     const api = createApiClient(async () => new Response(null, { status: 204 }));
     expect(await api.logout()).toEqual({ ok: true, data: undefined });
   });
+
+  it("envia cadastro como JSON com o cabecalho anti-CSRF e valida a resposta", async () => {
+    let seen: { url: string; init?: RequestInit } | undefined;
+    const me = { user: { id: "u1", displayName: "Jogador", createdAt: "2026-10-16T00:00:00.000Z" }, gameAccounts: [] };
+    const api = createApiClient(async (url, init) => {
+      seen = { url: String(url), init };
+      return json(201, me);
+    });
+    const body = { displayName: "Jogador", email: "j@exemplo.com", password: "senha-forte-123", acceptTerms: true as const };
+    expect(await api.register(body)).toEqual({ ok: true, data: me });
+    expect(seen?.url).toBe("/api/v1/auth/register");
+    expect(seen?.init?.headers).toEqual({ "x-cyl-request": "1", "content-type": "application/json" });
+    expect(JSON.parse(String(seen?.init?.body))).toEqual(body);
+  });
 });

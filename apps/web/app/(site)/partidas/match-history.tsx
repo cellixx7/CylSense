@@ -3,6 +3,7 @@
 import type { MatchListResponse, MeResponse } from "@cyl/contracts";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { Skeleton } from "@/components/skeleton";
 import { createApiClient } from "@/lib/api";
 
 const api = createApiClient();
@@ -49,14 +50,14 @@ export function MatchHistory() {
     setState({ kind: "signed_out" });
   }
 
-  if (state.kind === "loading") return <p className="text-sm text-muted">Carregando...</p>;
+  if (state.kind === "loading") return <MatchHistorySkeleton />;
   if (state.kind === "error") return <p role="alert" className="text-sm">Nao foi possivel carregar: {state.message}</p>;
   if (state.kind === "signed_out") {
     return (
       <p className="text-sm text-muted">
-        Conecte sua conta para ver seu historico.{" "}
+        Entre na sua conta para ver seu historico.{" "}
         <Link href="/entrar" className="text-accent underline">
-          Conectar
+          Entrar
         </Link>
       </p>
     );
@@ -119,6 +120,20 @@ export function MatchHistory() {
           Conheca o CYL Sense Desktop
         </Link>
       </p>
+    </div>
+  );
+}
+
+function MatchHistorySkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Carregando partidas" className="space-y-4">
+      <div className="flex gap-3">
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-8 w-44" />
+      </div>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <Skeleton key={i} className="h-9 w-full" />
+      ))}
     </div>
   );
 }

@@ -10,7 +10,11 @@ Este documento **nao** define identidade visual. Ele fixa os nomes de tokens, os
 | `--cyl-surface` | Superficies (paineis, tabelas) | `bg-surface` |
 | `--cyl-border` | Divisores e bordas | `border-border` |
 | `--cyl-text` / `--cyl-text-muted` | Texto principal e secundario | `text-text` / `text-muted` |
-| `--cyl-accent` | Acao primaria e destaque | `bg-accent`, `text-accent` |
+| `--cyl-accent` / `--cyl-on-accent` | Acao primaria e destaque (violeta) e o texto sobre ela | `bg-accent`, `text-accent`, `text-on-accent` |
+| `--cyl-accent-soft` / `--cyl-on-accent-soft` | Preenchimento de selecao e hover (item ativo, chips) | `bg-accent-soft`, `text-on-accent-soft` |
+| `--cyl-subtle` / `--cyl-input` | Preenchimento discreto e borda de campos | `bg-subtle`, `border-input` |
+| `--cyl-up` / `--cyl-down` | Tendencia positiva e negativa | `text-up`, `text-down` |
+| `--cyl-skeleton` | Blocos de esqueleto (`.cyl-skeleton`); carregamento nunca usa spinner | `bg-skeleton` |
 | `--cyl-warning` | Avisos (dados sinteticos, amostra pequena) | `border-warning` |
 | `--cyl-danger` | Erros | `border-danger` |
 | `--cyl-radius` | Raio padrao (pequeno; evitar cards muito arredondados) | `rounded-cyl` |
@@ -42,8 +46,11 @@ Definidos em `apps/web/app/globals.css`. O desktop usa as variaveis do shadcn (`
 
 | Tela | Estado | Conteudo |
 |---|---|---|
-| Web `/` | [impl] | Proposta, CTA conectar, CTA desktop, tres pilares |
-| Web `/entrar` | [impl] | Status do login (desativado ou demonstracao), mensagens de erro por codigo |
+| Web `/` | [impl] | Header com Entrar e Criar conta, hero com exemplo sintetico (fato x hipotese), como funciona, seus dados, CTA desktop |
+| Web `/entrar` | [impl] | Login por e-mail e senha (conta propria), erro generico, mensagens do retorno Riot por codigo |
+| Web `/criar-conta` | [impl] | Cadastro (nome, e-mail, senha, termos) com etapas; leva ao painel com a pergunta de vinculo |
+| Web `/vincular` | [impl] | Vinculo opcional da conta Riot (desativado, demonstracao, vinculada, desvincular) |
+| Web `/painel` | [impl, dados sim] | Esqueleto ao carregar, pergunta "Deseja vincular?" apos o cadastro, perfil, patente, agentes, ranking entre amigos, mapas e destaques; artes oficiais em espacos marcados |
 | Web `/partidas` | [impl, dados sim] | Conta vinculada, sincronizar, sair, aviso de sintetico, tabela, convite ao desktop |
 | Web `/download` | [impl] | Proposta do desktop, garantias de compliance; instalador indisponivel |
 | Desktop (5 areas) | [impl placeholder] | Shell com navegacao lateral (P0-01) |
